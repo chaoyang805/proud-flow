@@ -19,7 +19,7 @@
 | P1 | 公共包 | 定义领域类型、API contract、共享 client | done |
 | P2 | 后端核心 | 实现 D1 数据模型、状态机、需求和产物 API | done |
 | P3 | Skills API + Local API | 支持 CLI helper、token bootstrap、Skill manifest | done |
-| P4 | CLI helper | 实现 `proud-flow` 初始化和 Skills API helper | todo |
+| P4 | CLI helper | 实现 `proud-flow` 初始化和 Skills API helper | done |
 | P5 | Daemon 派发 | 实现 WebSocket 连接、ACK、Codex Runner | todo |
 | P6 | Skills | 实现三个 Codex Skills | todo |
 | P7 | 前端 MVP | 实现需求管理、review、派发和实时刷新 | todo |
@@ -196,32 +196,32 @@
 
 任务：
 
-- [ ] 初始化 CLI app
-- [ ] 实现 prod / dev 固定后端地址映射
-- [ ] 实现开发者环境变量覆盖
-- [ ] 实现本地配置读写
-- [ ] 实现 macOS Keychain token 存储
-- [ ] 实现 `proud-flow init`
-- [ ] 实现 `proud-flow status`
-- [ ] 实现 `proud-flow auth status`
-- [ ] 实现 `proud-flow auth rotate`
-- [ ] 实现 `proud-flow auth logout`
-- [ ] 实现 `proud-flow get-requirement`
-- [ ] 实现 `proud-flow get-task-context`
-- [ ] 实现 `proud-flow start-stage`
-- [ ] 实现 `proud-flow attach-artifact`
-- [ ] 实现 `proud-flow upload-artifact`
-- [ ] 实现 `proud-flow complete-stage`
-- [ ] 实现 `proud-flow fail-stage`
-- [ ] 实现 `proud-flow append-note`
-- [ ] 支持 `--json` 输出
-- [ ] 默认输出模型易读 Markdown
+- [x] 初始化 CLI app
+- [x] 实现 prod / dev 固定后端地址映射
+- [x] 实现开发者环境变量覆盖
+- [x] 实现本地配置读写
+- [x] 实现 macOS Keychain token 存储
+- [x] 实现 `proud-flow init`
+- [x] 实现 `proud-flow status`
+- [x] 实现 `proud-flow auth status`
+- [x] 实现 `proud-flow auth rotate`
+- [x] 实现 `proud-flow auth logout`
+- [x] 实现 `proud-flow get-requirement`
+- [x] 实现 `proud-flow get-task-context`
+- [x] 实现 `proud-flow start-stage`
+- [x] 实现 `proud-flow attach-artifact`
+- [x] 实现 `proud-flow upload-artifact`
+- [x] 实现 `proud-flow complete-stage`
+- [x] 实现 `proud-flow fail-stage`
+- [x] 实现 `proud-flow append-note`
+- [x] 支持 `--json` 输出
+- [x] 默认输出模型易读 Markdown
 
 验收标准：
 
-- [ ] CLI 输出不泄露 token
-- [ ] helper 命令能连接本地 dev API
-- [ ] 错误响应包含稳定错误码
+- [x] CLI 输出不泄露 token
+- [x] helper 命令能连接本地 dev API
+- [x] 错误响应包含稳定错误码
 
 ## 8. P5 Daemon 派发
 
@@ -406,3 +406,4 @@ web requirement detail + dispatch
 | 2026-06-04 | P1 公共包 | done | 已实现 domain 类型与状态映射、API contract schema/OpenAPI、typed API client、单元测试、E2E 测试和 80%+ 覆盖率检查 |
 | 2026-06-04 | P2 后端核心 | done | 已实现 Worker fetch app、D1/R2 binding 类型、requirements/reviews/artifacts/workflow API、token hash 校验、迁移 SQL、单元测试、E2E 测试和 80%+ 覆盖率检查 |
 | 2026-06-04 | P3 Skills API + Local API | done | 已实现 Skills API、Local bootstrap/rotate/revoke、pf_local_ 管理 token、Skill manifest、单元测试、E2E 测试和 80%+ 覆盖率检查 |
+| 2026-06-04 | P4 CLI Helper | done | 已实现 CLI 初始化、auth 管理、Skills API helper、JSON/Markdown 输出、单元测试、E2E 测试和 80%+ 覆盖率检查 |

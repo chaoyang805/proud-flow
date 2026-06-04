@@ -190,4 +190,81 @@ describe("workspace e2e", () => {
     const forbiddenBody = await forbidden.json();
     assert.equal(forbiddenBody.error.code, "FORBIDDEN");
   });
+
+  it("runs P4 CLI helper against the local dev API", async () => {
+    const { createApiApp, hashToken } = await import(
+      "../../apps/api/dist/index.js"
+    );
+    const { createMemoryCliRuntime, runCli } = await import(
+      "../../apps/cli/dist/index.js"
+    );
+    const app = createApiApp();
+    const bootstrapHash = await hashToken("cli-bootstrap", "pepper");
+    const env = {
+      BOOTSTRAP_TOKEN_HASHES: bootstrapHash,
+      TOKEN_HASH_SECRET: "pepper",
+    };
+    const runtime = createMemoryCliRuntime({
+      fetch: (url, init) =>
+        app.fetch(
+          new Request(url, {
+            method: init?.method,
+            headers: init?.headers,
+            body: init?.body,
+          }),
+          env,
+        ),
+      env: { PROUD_FLOW_API_URL: "https://api.test" },
+    });
+
+    const init = await runCli(
+      [
+        "init",
+        "--env",
+        "dev",
+        "--bootstrap-token",
+        "cli-bootstrap",
+        "--machine-name",
+        "e2e",
+      ],
+      runtime,
+    );
+    assert.equal(init.exitCode, 0);
+
+    await app.fetch(
+      new Request("https://api.test/api/requirements", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: "CLI E2E",
+          description: "helper",
+          priority: "high",
+        }),
+      }),
+      env,
+    );
+
+    const started = await runCli(
+      ["start-stage", "REQ-000001", "--stage", "tech_design", "--json"],
+      runtime,
+    );
+    assert.equal(JSON.parse(started.stdout).requirement.status, "tech-design");
+
+    await runCli(
+      [
+        "attach-artifact",
+        "REQ-000001",
+        "--type",
+        "tech_design_pr",
+        "--title",
+        "PR",
+      ],
+      runtime,
+    );
+    const completed = await runCli(
+      ["complete-stage", "REQ-000001", "--stage", "tech_design", "--json"],
+      runtime,
+    );
+    assert.equal(JSON.parse(completed.stdout).requirement.status, "tech-review");
+  });
 });
