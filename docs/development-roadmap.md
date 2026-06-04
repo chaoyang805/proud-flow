@@ -15,7 +15,7 @@
 
 | 阶段 | 模块 | 目标 | 状态 |
 | --- | --- | --- | --- |
-| P0 | Monorepo 基础 | 初始化工程结构、包管理、构建和质量工具 | todo |
+| P0 | Monorepo 基础 | 初始化工程结构、包管理、构建和质量工具 | done |
 | P1 | 公共包 | 定义领域类型、API contract、共享 client | todo |
 | P2 | 后端核心 | 实现 D1 数据模型、状态机、需求和产物 API | todo |
 | P3 | Skills API + Local API | 支持 CLI helper、token bootstrap、Skill manifest | todo |
@@ -32,31 +32,31 @@
 
 任务：
 
-- [ ] 初始化 `pnpm-workspace.yaml`
-- [ ] 初始化 `turbo.json`
-- [ ] 初始化根 `package.json`
-- [ ] 初始化 `tsconfig.base.json`
-- [ ] 建立 `apps/web`
-- [ ] 建立 `apps/api`
-- [ ] 建立 `apps/cli`
-- [ ] 建立 `packages/domain`
-- [ ] 建立 `packages/api-contract`
-- [ ] 建立 `packages/api-client`
-- [ ] 建立 `packages/config`
-- [ ] 建立 `skills/tech-design`
-- [ ] 建立 `skills/case-rundown`
-- [ ] 建立 `skills/development`
-- [ ] 配置 ESLint
-- [ ] 配置 Prettier
-- [ ] 配置 Vitest
-- [ ] 配置基础 CI 命令：`typecheck`、`lint`、`test`、`build`
+- [x] 初始化 `pnpm-workspace.yaml`
+- [x] 初始化 `turbo.json`
+- [x] 初始化根 `package.json`
+- [x] 初始化 `tsconfig.base.json`
+- [x] 建立 `apps/web`
+- [x] 建立 `apps/api`
+- [x] 建立 `apps/cli`
+- [x] 建立 `packages/domain`
+- [x] 建立 `packages/api-contract`
+- [x] 建立 `packages/api-client`
+- [x] 建立 `packages/config`
+- [x] 建立 `skills/tech-design`
+- [x] 建立 `skills/case-rundown`
+- [x] 建立 `skills/development`
+- [x] 配置 ESLint
+- [x] 配置 Prettier
+- [x] 配置 Vitest
+- [x] 配置基础 CI 命令：`typecheck`、`lint`、`test`、`build`
 
 验收标准：
 
-- [ ] 根目录可执行 `pnpm install`
-- [ ] 根目录可执行 `pnpm typecheck`
-- [ ] 根目录可执行 `pnpm lint`
-- [ ] 所有 workspace package 能被 TypeScript 正确解析
+- [x] 根目录可执行 `pnpm install`
+- [x] 根目录可执行 `pnpm typecheck`
+- [x] 根目录可执行 `pnpm lint`
+- [x] 所有 workspace package 能被 TypeScript 正确解析
 
 ## 4. P1 公共包
 
@@ -402,3 +402,4 @@ web requirement detail + dispatch
 | 2026-06-04 | Proud Flow CLI 技术设计 | done | 合并 daemon、CLI helper、Skill 管理 |
 | 2026-06-04 | 仓库结构与工程化方案 | done | 已定义 monorepo 和共享包方案 |
 | 2026-06-04 | 开发 Roadmap | done | 当前文档 |
+| 2026-06-04 | P0 Monorepo 基础 | done | 已初始化 pnpm workspace、工程骨架、质量命令、单元测试、E2E 测试和覆盖率检查 |

@@ -1,0 +1,27 @@
+{
+  "name": "@proud-flow/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Proud Flow Cloudflare API workspace placeholder",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.test.json --noEmit",
+    "lint": "node ../../scripts/lint-workspace.mjs",
+    "test": "node ../../scripts/run-workspace-tests.mjs",
+    "test:coverage": "node ../../scripts/run-workspace-coverage.mjs"
+  },
+  "devDependencies": {
+    "@proud-flow/config": "workspace:*"
+  },
+  "dependencies": {
+    "@proud-flow/api-contract": "workspace:*",
+    "@proud-flow/domain": "workspace:*"
+  }
+}
