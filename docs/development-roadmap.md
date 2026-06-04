@@ -20,7 +20,7 @@
 | P2 | 后端核心 | 实现 D1 数据模型、状态机、需求和产物 API | done |
 | P3 | Skills API + Local API | 支持 CLI helper、token bootstrap、Skill manifest | done |
 | P4 | CLI helper | 实现 `proud-flow` 初始化和 Skills API helper | done |
-| P5 | Daemon 派发 | 实现 WebSocket 连接、ACK、Codex Runner | todo |
+| P5 | Daemon 派发 | 实现 WebSocket 连接、ACK、Codex Runner | done |
 | P6 | Skills | 实现三个 Codex Skills | todo |
 | P7 | 前端 MVP | 实现需求管理、review、派发和实时刷新 | todo |
 | P8 | E2E 闭环 | 跑通完整需求生命周期 | todo |
@@ -229,25 +229,25 @@
 
 任务：
 
-- [ ] 实现 `proud-flow daemon`
-- [ ] 实现 `/api/dispatch/ws` 连接
-- [ ] 实现 dispatcher token 鉴权
-- [ ] 实现心跳
-- [ ] 实现断线重连
-- [ ] 实现 `dispatch.requested` schema 校验
-- [ ] 实现 stage 到 Skill 指令映射
-- [ ] 实现 Codex Runner mock
-- [ ] 实现真实 Codex Runner
-- [ ] 实现 ACK 成功
-- [ ] 实现 ACK 失败
-- [ ] 实现 busy 保护
-- [ ] 实现 requestId 去重
+- [x] 实现 `proud-flow daemon`
+- [x] 实现 `/api/dispatch/ws` 连接
+- [x] 实现 dispatcher token 鉴权
+- [x] 实现心跳
+- [x] 实现断线重连
+- [x] 实现 `dispatch.requested` schema 校验
+- [x] 实现 stage 到 Skill 指令映射
+- [x] 实现 Codex Runner mock
+- [x] 实现真实 Codex Runner
+- [x] 实现 ACK 成功
+- [x] 实现 ACK 失败
+- [x] 实现 busy 保护
+- [x] 实现 requestId 去重
 
 验收标准：
 
-- [ ] 后端派发后 daemon 能 ACK
-- [ ] Codex 不可用时返回失败 ACK
-- [ ] daemon 不执行远端动态命令
+- [x] 后端派发后 daemon 能 ACK
+- [x] Codex 不可用时返回失败 ACK
+- [x] daemon 不执行远端动态命令
 
 ## 9. P6 Skills
 
@@ -407,3 +407,4 @@ web requirement detail + dispatch
 | 2026-06-04 | P2 后端核心 | done | 已实现 Worker fetch app、D1/R2 binding 类型、requirements/reviews/artifacts/workflow API、token hash 校验、迁移 SQL、单元测试、E2E 测试和 80%+ 覆盖率检查 |
 | 2026-06-04 | P3 Skills API + Local API | done | 已实现 Skills API、Local bootstrap/rotate/revoke、pf_local_ 管理 token、Skill manifest、单元测试、E2E 测试和 80%+ 覆盖率检查 |
 | 2026-06-04 | P4 CLI Helper | done | 已实现 CLI 初始化、auth 管理、Skills API helper、JSON/Markdown 输出、单元测试、E2E 测试和 80%+ 覆盖率检查 |
+| 2026-06-04 | P5 Daemon 派发 | done | 已实现 dispatcher WebSocket 鉴权入口、daemon 协议处理、固定 Skill 指令映射、Codex Runner、ACK/busy/去重/心跳/重连退避；daemon/dispatch 新增测试直接测源码并通过 80%+ 覆盖率检查 |

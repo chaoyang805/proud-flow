@@ -9,6 +9,7 @@ import {
 import { ArtifactStorage } from "./modules/artifacts/storage.js";
 import { ArtifactsService } from "./modules/artifacts/service.js";
 import { handleArtifactsRoute } from "./modules/artifacts/routes.js";
+import { handleDispatchRoute } from "./modules/dispatch/routes.js";
 import { LocalApiService } from "./modules/local/service.js";
 import { handleLocalRoute } from "./modules/local/routes.js";
 import { InMemoryRequirementRepository } from "./modules/requirements/repository.js";
@@ -50,6 +51,7 @@ export function createApiApp(options: ApiAppOptions = {}) {
             skills,
             repository,
           )) ??
+          (await handleDispatchRoute(request, url.pathname, env, repository)) ??
           (await requireUserToken(request, env).then(() => undefined)) ??
           (await handleRequirementsRoute(
             request,

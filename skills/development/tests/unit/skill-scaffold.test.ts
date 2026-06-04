@@ -1,6 +1,7 @@
+// @ts-nocheck
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
-import { skillPackage, supportsDispatchStages } from "../../dist/index.js";
+import { describe, it } from "vitest";
+import { skillPackage, supportsDispatchStages } from "../../src/index";
 
 describe("development skill scaffold", () => {
   it("resolves the shared domain stages", () => {

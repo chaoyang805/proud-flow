@@ -1,10 +1,11 @@
+// @ts-nocheck
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import { describe, it } from "vitest";
 import {
   isRootQualityTask,
   rootQualityTasks,
   workspacePackageGlobs,
-} from "../../dist/index.js";
+} from "../../src/index";
 
 describe("workspace engineering config", () => {
   it("lists every P0 workspace glob", () => {

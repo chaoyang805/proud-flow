@@ -58,6 +58,17 @@ export async function requireLocalToken(
   ]);
 }
 
+export async function requireDispatcherToken(
+  request: Request,
+  env: ApiEnv,
+  repository: InMemoryRequirementRepository,
+): Promise<void> {
+  await requireTypedToken(request, env, [
+    ...parseHashList(env.DISPATCHER_TOKEN_HASHES),
+    ...repository.listActiveApiTokenHashes("dispatcher"),
+  ]);
+}
+
 async function requireTypedToken(
   request: Request,
   env: ApiEnv,

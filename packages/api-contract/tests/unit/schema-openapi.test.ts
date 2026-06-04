@@ -1,5 +1,6 @@
+// @ts-nocheck
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import { describe, it } from "vitest";
 import {
   createOpenApiDocument,
   createRequirementRequestSchema,
@@ -14,7 +15,7 @@ import {
   routeSpecs,
   skillManifestResponseSchema,
   taskContextResponseSchema,
-} from "../../dist/index.js";
+} from "../../src/index";
 
 const requirement = {
   id: "REQ-000123",

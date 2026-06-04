@@ -1,5 +1,6 @@
+// @ts-nocheck
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import { describe, it } from "vitest";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
@@ -47,7 +48,7 @@ describe("workspace e2e", () => {
     assert.ok(openapi.paths["/api/local/skills/manifest"]);
   });
   it("runs a P2 backend requirement lifecycle through the Worker fetch app", async () => {
-    const { createApiApp } = await import("../../apps/api/dist/index.js");
+    const { createApiApp } = await import("../../apps/api/src/index");
     const app = createApiApp();
 
     const created = await app.fetch(
@@ -101,7 +102,7 @@ describe("workspace e2e", () => {
 
   it("runs a P3 local bootstrap and Skills API lifecycle through the Worker fetch app", async () => {
     const { createApiApp, hashToken } = await import(
-      "../../apps/api/dist/index.js"
+      "../../apps/api/src/index"
     );
     const app = createApiApp();
     const bootstrapHash = await hashToken("bootstrap-e2e", "pepper");
@@ -193,10 +194,10 @@ describe("workspace e2e", () => {
 
   it("runs P4 CLI helper against the local dev API", async () => {
     const { createApiApp, hashToken } = await import(
-      "../../apps/api/dist/index.js"
+      "../../apps/api/src/index"
     );
     const { createMemoryCliRuntime, runCli } = await import(
-      "../../apps/cli/dist/index.js"
+      "../../apps/cli/src/index"
     );
     const app = createApiApp();
     const bootstrapHash = await hashToken("cli-bootstrap", "pepper");

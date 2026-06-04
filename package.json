@@ -14,13 +14,15 @@
     "lint": "node scripts/lint.mjs",
     "test": "pnpm build && node scripts/turbo-run.mjs test",
     "test:coverage": "pnpm build && node scripts/turbo-run.mjs test:coverage",
-    "test:e2e": "node --test tests/e2e/*.test.mjs",
+    "test:e2e": "pnpm exec vitest run -c vitest.e2e.config.ts --passWithNoTests",
     "format": "node scripts/format.mjs --write",
     "format:check": "node scripts/format.mjs --check",
     "openapi:generate": "pnpm --filter @proud-flow/api-contract openapi:generate"
   },
   "devDependencies": {
     "@types/node": "^25.9.1",
-    "typescript": "^6.0.3"
+    "@vitest/coverage-v8": "^4.1.8",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.8"
   }
 }

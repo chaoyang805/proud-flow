@@ -1,5 +1,6 @@
+// @ts-nocheck
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import { describe, it } from "vitest";
 import {
   canRollbackFromStatus,
   dispatchStageToActiveStatus,
@@ -18,7 +19,7 @@ import {
   isTokenType,
   parseId,
   requirementStatuses,
-} from "../../dist/index.js";
+} from "../../src/index";
 
 describe("domain package", () => {
   it("defines requirement statuses and priority guards", () => {

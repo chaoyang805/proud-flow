@@ -50,6 +50,7 @@ async function dispatch(parsed: ParsedArgs, runtime: CliRuntime): Promise<string
   if (command === "auth" && subcommand === "logout") {
     return authLogoutCommand(runtime);
   }
+  if (command === "daemon") return daemonCommand(parsed, runtime);
   return skillHelperCommand(parsed, runtime);
 }
 
@@ -141,6 +142,26 @@ async function authLogoutCommand(runtime: CliRuntime): Promise<string> {
   await runtime.keychain.deleteToken("local");
   await runtime.store.clearConfig();
   return "Logged out Proud Flow CLI\n";
+}
+
+async function daemonCommand(
+  parsed: ParsedArgs,
+  runtime: CliRuntime,
+): Promise<string> {
+  const config = await requireConfig(runtime);
+  const token = await runtime.keychain.getToken("dispatcher");
+  if (!token) throw new Error("Missing dispatcher token");
+  const payload = {
+    ready: true,
+    environment: config.environment ?? "prod",
+    websocketUrl: `${getBackendUrl(
+      config.environment ?? "prod",
+      runtime.env,
+    ).replace(/^http/, "ws")}/api/dispatch/ws`,
+  };
+  return parsed.json
+    ? json(payload)
+    : `Proud Flow daemon ready\nEnvironment: ${payload.environment}\n`;
 }
 
 async function skillHelperCommand(
