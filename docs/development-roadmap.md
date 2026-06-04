@@ -16,7 +16,7 @@
 | 阶段 | 模块 | 目标 | 状态 |
 | --- | --- | --- | --- |
 | P0 | Monorepo 基础 | 初始化工程结构、包管理、构建和质量工具 | done |
-| P1 | 公共包 | 定义领域类型、API contract、共享 client | todo |
+| P1 | 公共包 | 定义领域类型、API contract、共享 client | done |
 | P2 | 后端核心 | 实现 D1 数据模型、状态机、需求和产物 API | todo |
 | P3 | Skills API + Local API | 支持 CLI helper、token bootstrap、Skill manifest | todo |
 | P4 | CLI helper | 实现 `proud-flow` 初始化和 Skills API helper | todo |
@@ -66,59 +66,59 @@
 
 任务：
 
-- [ ] 定义 `RequirementStatus`
-- [ ] 定义 `DispatchStage`
-- [ ] 定义 status 与 stage 的映射
-- [ ] 定义 `Priority`
-- [ ] 定义 `ArtifactType`
-- [ ] 定义 `ActorType`
-- [ ] 定义 `TokenType`
-- [ ] 定义 `ErrorCode`
-- [ ] 定义 `RealtimeEvent`
-- [ ] 定义 `DispatchMessage`
-- [ ] 定义 ID parser 和格式校验
+- [x] 定义 `RequirementStatus`
+- [x] 定义 `DispatchStage`
+- [x] 定义 status 与 stage 的映射
+- [x] 定义 `Priority`
+- [x] 定义 `ArtifactType`
+- [x] 定义 `ActorType`
+- [x] 定义 `TokenType`
+- [x] 定义 `ErrorCode`
+- [x] 定义 `RealtimeEvent`
+- [x] 定义 `DispatchMessage`
+- [x] 定义 ID parser 和格式校验
 
 验收标准：
 
-- [ ] 所有类型不依赖运行时框架
-- [ ] 单元测试覆盖 stage/status 映射
+- [x] 所有类型不依赖运行时框架
+- [x] 单元测试覆盖 stage/status 映射
 
 ### 4.2 `packages/api-contract`
 
 任务：
 
-- [ ] 定义 common error response schema
-- [ ] 定义 requirements API schema
-- [ ] 定义 reviews API schema
-- [ ] 定义 artifacts API schema
-- [ ] 定义 dispatch API schema
-- [ ] 定义 realtime WebSocket message schema
-- [ ] 定义 skills API schema
-- [ ] 定义 local API schema
-- [ ] 生成 OpenAPI JSON
+- [x] 定义 common error response schema
+- [x] 定义 requirements API schema
+- [x] 定义 reviews API schema
+- [x] 定义 artifacts API schema
+- [x] 定义 dispatch API schema
+- [x] 定义 realtime WebSocket message schema
+- [x] 定义 skills API schema
+- [x] 定义 local API schema
+- [x] 生成 OpenAPI JSON
 
 验收标准：
 
-- [ ] request / response schema 可被后端路由复用
-- [ ] schema 可推导前端和 CLI 类型
-- [ ] `openapi.json` 可生成
+- [x] request / response schema 可被后端路由复用
+- [x] schema 可推导前端和 CLI 类型
+- [x] `openapi.json` 可生成
 
 ### 4.3 `packages/api-client`
 
 任务：
 
-- [ ] 实现基础 typed fetch client
-- [ ] 实现错误码解析
-- [ ] 实现 user API client
-- [ ] 实现 skills API client
-- [ ] 实现 local API client
-- [ ] 实现 dispatch API client
+- [x] 实现基础 typed fetch client
+- [x] 实现错误码解析
+- [x] 实现 user API client
+- [x] 实现 skills API client
+- [x] 实现 local API client
+- [x] 实现 dispatch API client
 
 验收标准：
 
-- [ ] Web 可注入 user token 使用
-- [ ] CLI 可注入 skill / dispatcher token 使用
-- [ ] 不在 client 内保存 token 或决定环境地址
+- [x] Web 可注入 user token 使用
+- [x] CLI 可注入 skill / dispatcher token 使用
+- [x] 不在 client 内保存 token 或决定环境地址
 
 ## 5. P2 后端核心
 
@@ -403,3 +403,4 @@ web requirement detail + dispatch
 | 2026-06-04 | 仓库结构与工程化方案 | done | 已定义 monorepo 和共享包方案 |
 | 2026-06-04 | 开发 Roadmap | done | 当前文档 |
 | 2026-06-04 | P0 Monorepo 基础 | done | 已初始化 pnpm workspace、工程骨架、质量命令、单元测试、E2E 测试和覆盖率检查 |
+| 2026-06-04 | P1 公共包 | done | 已实现 domain 类型与状态映射、API contract schema/OpenAPI、typed API client、单元测试、E2E 测试和 80%+ 覆盖率检查 |
