@@ -16,11 +16,12 @@ export interface LocalBootstrapResponse {
   tokens: {
     skill: string;
     dispatcher: string;
+    local: string;
   };
 }
 
 export interface RotateTokenRequest {
-  tokenType: Extract<TokenType, "skill" | "dispatcher">;
+  tokenType: Extract<TokenType, "skill" | "dispatcher" | "local">;
 }
 
 export interface RotateTokenResponse {
@@ -28,7 +29,7 @@ export interface RotateTokenResponse {
 }
 
 export interface RevokeTokenRequest {
-  tokenType: Extract<TokenType, "skill" | "dispatcher">;
+  tokenType: Extract<TokenType, "skill" | "dispatcher" | "local">;
 }
 
 export interface SkillManifestEntry {
@@ -55,6 +56,7 @@ export const localBootstrapResponseSchema: Schema<LocalBootstrapResponse> =
     tokens: objectSchema({
       skill: stringSchema({ pattern: /^pf_skill_[A-Za-z0-9_-]+$/ }),
       dispatcher: stringSchema({ pattern: /^pf_dispatcher_[A-Za-z0-9_-]+$/ }),
+      local: stringSchema({ pattern: /^pf_local_[A-Za-z0-9_-]+$/ }),
     }),
   });
 
@@ -62,14 +64,17 @@ export const rotateTokenRequestSchema: Schema<RotateTokenRequest> =
   objectSchema({
     tokenType: enumSchema(
       tokenTypes.filter(
-        (value) => value === "skill" || value === "dispatcher",
-      ) as ["skill", "dispatcher"],
+        (value) =>
+          value === "skill" || value === "dispatcher" || value === "local",
+      ) as ["skill", "dispatcher", "local"],
     ),
   });
 
 export const rotateTokenResponseSchema: Schema<RotateTokenResponse> =
   objectSchema({
-    token: stringSchema({ pattern: /^pf_(skill|dispatcher)_[A-Za-z0-9_-]+$/ }),
+    token: stringSchema({
+      pattern: /^pf_(skill|dispatcher|local)_[A-Za-z0-9_-]+$/,
+    }),
   });
 
 export const revokeTokenRequestSchema: Schema<RevokeTokenRequest> =

@@ -9,11 +9,15 @@ import {
 import { ArtifactStorage } from "./modules/artifacts/storage.js";
 import { ArtifactsService } from "./modules/artifacts/service.js";
 import { handleArtifactsRoute } from "./modules/artifacts/routes.js";
+import { LocalApiService } from "./modules/local/service.js";
+import { handleLocalRoute } from "./modules/local/routes.js";
 import { InMemoryRequirementRepository } from "./modules/requirements/repository.js";
 import { RequirementsService } from "./modules/requirements/service.js";
 import { handleRequirementsRoute } from "./modules/requirements/routes.js";
 import { ReviewsService } from "./modules/reviews/service.js";
 import { handleReviewsRoute } from "./modules/reviews/routes.js";
+import { SkillsApiService } from "./modules/skills/service.js";
+import { handleSkillsRoute } from "./modules/skills/routes.js";
 import { handleWorkflowRoute } from "./modules/workflow/routes.js";
 
 export interface ApiAppOptions {
@@ -27,7 +31,6 @@ export function createApiApp(options: ApiAppOptions = {}) {
     repository,
     async fetch(request: Request, env: ApiEnv = {}): Promise<Response> {
       try {
-        await requireUserToken(request, env);
         const url = new URL(request.url);
         const requirements = new RequirementsService(repository);
         const reviews = new ReviewsService(repository);
@@ -35,8 +38,19 @@ export function createApiApp(options: ApiAppOptions = {}) {
           repository,
           new ArtifactStorage(env.ARTIFACT_BUCKET),
         );
+        const local = new LocalApiService(repository);
+        const skills = new SkillsApiService(repository, artifacts);
 
         const response =
+          (await handleLocalRoute(request, url.pathname, env, local, repository)) ??
+          (await handleSkillsRoute(
+            request,
+            url.pathname,
+            env,
+            skills,
+            repository,
+          )) ??
+          (await requireUserToken(request, env).then(() => undefined)) ??
           (await handleRequirementsRoute(
             request,
             url.pathname,

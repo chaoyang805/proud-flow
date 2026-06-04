@@ -14,6 +14,9 @@ export interface ApiEnv {
   DB?: D1DatabaseBinding;
   ARTIFACT_BUCKET?: R2BucketBinding;
   USER_TOKEN_HASHES?: string;
+  SKILL_TOKEN_HASHES?: string;
+  LOCAL_TOKEN_HASHES?: string;
+  BOOTSTRAP_TOKEN_HASHES?: string;
   TOKEN_HASH_SECRET?: string;
 }
 

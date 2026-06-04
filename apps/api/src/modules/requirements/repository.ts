@@ -3,6 +3,7 @@ import type {
   Priority,
   Requirement,
   RequirementStatus,
+  TokenType,
 } from "@proud-flow/domain";
 
 export interface RequirementCreateInput {
@@ -28,11 +29,22 @@ export interface ArtifactCreateInput {
   content?: string;
 }
 
+export interface ApiTokenRecord {
+  id: string;
+  tokenHash: string;
+  tokenType: Extract<TokenType, "skill" | "dispatcher" | "local">;
+  machineName?: string;
+  createdAt: string;
+  revokedAt?: string;
+}
+
 export class InMemoryRequirementRepository {
   private requirements = new Map<string, Requirement>();
   private artifacts = new Map<string, Artifact>();
+  private apiTokens = new Map<string, ApiTokenRecord>();
   private requirementCounter = 0;
   private artifactCounter = 0;
+  private tokenCounter = 0;
 
   createRequirement(input: RequirementCreateInput): Requirement {
     const now = new Date().toISOString();
@@ -96,5 +108,41 @@ export class InMemoryRequirementRepository {
     return [...this.artifacts.values()].filter(
       (artifact) => artifact.requirementId === requirementId,
     );
+  }
+
+  createApiToken(input: {
+    tokenHash: string;
+    tokenType: Extract<TokenType, "skill" | "dispatcher" | "local">;
+    machineName?: string;
+  }): ApiTokenRecord {
+    this.tokenCounter += 1;
+    const record: ApiTokenRecord = {
+      id: `tok_${this.tokenCounter.toString().padStart(6, "0")}`,
+      tokenHash: input.tokenHash,
+      tokenType: input.tokenType,
+      machineName: input.machineName,
+      createdAt: new Date().toISOString(),
+    };
+    this.apiTokens.set(record.id, record);
+    return record;
+  }
+
+  listActiveApiTokenHashes(
+    tokenType: Extract<TokenType, "skill" | "dispatcher" | "local">,
+  ): string[] {
+    return [...this.apiTokens.values()]
+      .filter((record) => record.tokenType === tokenType && !record.revokedAt)
+      .map((record) => record.tokenHash);
+  }
+
+  revokeApiTokens(
+    tokenType: Extract<TokenType, "skill" | "dispatcher" | "local">,
+  ): void {
+    const now = new Date().toISOString();
+    for (const record of this.apiTokens.values()) {
+      if (record.tokenType === tokenType && !record.revokedAt) {
+        this.apiTokens.set(record.id, { ...record, revokedAt: now });
+      }
+    }
   }
 }

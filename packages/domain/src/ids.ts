@@ -3,7 +3,7 @@ export const idPatterns = {
   event: /^evt_[A-Za-z0-9_-]+$/,
   artifact: /^art_[A-Za-z0-9_-]+$/,
   dispatchRequest: /^dispatch_req_[A-Za-z0-9_-]+$/,
-  token: /^pf_(skill|dispatcher|user|bootstrap)_[A-Za-z0-9_-]+$/,
+  token: /^pf_(skill|dispatcher|user|bootstrap|local)_[A-Za-z0-9_-]+$/,
 } as const;
 
 export type IdKind = keyof typeof idPatterns;

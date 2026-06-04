@@ -18,7 +18,7 @@
 | P0 | Monorepo 基础 | 初始化工程结构、包管理、构建和质量工具 | done |
 | P1 | 公共包 | 定义领域类型、API contract、共享 client | done |
 | P2 | 后端核心 | 实现 D1 数据模型、状态机、需求和产物 API | done |
-| P3 | Skills API + Local API | 支持 CLI helper、token bootstrap、Skill manifest | todo |
+| P3 | Skills API + Local API | 支持 CLI helper、token bootstrap、Skill manifest | done |
 | P4 | CLI helper | 实现 `proud-flow` 初始化和 Skills API helper | todo |
 | P5 | Daemon 派发 | 实现 WebSocket 连接、ACK、Codex Runner | todo |
 | P6 | Skills | 实现三个 Codex Skills | todo |
@@ -157,38 +157,38 @@
 
 任务：
 
-- [ ] `GET /api/skills/requirements/:id`
-- [ ] `GET /api/skills/requirements/:id/task-context`
-- [ ] `POST /api/skills/requirements/:id/status/start`
-- [ ] `POST /api/skills/requirements/:id/artifacts`
-- [ ] `POST /api/skills/requirements/:id/artifacts/upload`
-- [ ] `POST /api/skills/requirements/:id/complete-stage`
-- [ ] `POST /api/skills/requirements/:id/fail-stage`
-- [ ] `POST /api/skills/requirements/:id/notes`
+- [x] `GET /api/skills/requirements/:id`
+- [x] `GET /api/skills/requirements/:id/task-context`
+- [x] `POST /api/skills/requirements/:id/status/start`
+- [x] `POST /api/skills/requirements/:id/artifacts`
+- [x] `POST /api/skills/requirements/:id/artifacts/upload`
+- [x] `POST /api/skills/requirements/:id/complete-stage`
+- [x] `POST /api/skills/requirements/:id/fail-stage`
+- [x] `POST /api/skills/requirements/:id/notes`
 
 验收标准：
 
-- [ ] skill token 只能访问 Skills API
-- [ ] `complete-stage` 会校验当前状态和必需产物
-- [ ] `fail-stage` 不自动回退需求状态
+- [x] skill token 只能访问 Skills API
+- [x] `complete-stage` 会校验当前状态和必需产物
+- [x] `fail-stage` 不自动回退需求状态
 
 ### 6.2 Local API
 
 任务：
 
-- [ ] `POST /api/local/bootstrap`
-- [ ] `POST /api/local/tokens/rotate`
-- [ ] `POST /api/local/tokens/revoke`
-- [ ] `GET /api/local/skills/manifest`
-- [ ] 后端生成 `pf_skill_` token
-- [ ] 后端生成 `pf_dispatcher_` token
-- [ ] token 明文只返回一次
+- [x] `POST /api/local/bootstrap`
+- [x] `POST /api/local/tokens/rotate`
+- [x] `POST /api/local/tokens/revoke`
+- [x] `GET /api/local/skills/manifest`
+- [x] 后端生成 `pf_skill_` token
+- [x] 后端生成 `pf_dispatcher_` token
+- [x] token 明文只返回一次
 
 验收标准：
 
-- [ ] token 只存 hash
-- [ ] bootstrap 可返回 CLI 初始化所需 token
-- [ ] manifest 包含 Skill 版本、下载地址、sha256 和兼容 CLI 版本
+- [x] token 只存 hash
+- [x] bootstrap 可返回 CLI 初始化所需 token
+- [x] manifest 包含 Skill 版本、下载地址、sha256 和兼容 CLI 版本
 
 ## 7. P4 CLI Helper
 
@@ -405,3 +405,4 @@ web requirement detail + dispatch
 | 2026-06-04 | P0 Monorepo 基础 | done | 已初始化 pnpm workspace、工程骨架、质量命令、单元测试、E2E 测试和覆盖率检查 |
 | 2026-06-04 | P1 公共包 | done | 已实现 domain 类型与状态映射、API contract schema/OpenAPI、typed API client、单元测试、E2E 测试和 80%+ 覆盖率检查 |
 | 2026-06-04 | P2 后端核心 | done | 已实现 Worker fetch app、D1/R2 binding 类型、requirements/reviews/artifacts/workflow API、token hash 校验、迁移 SQL、单元测试、E2E 测试和 80%+ 覆盖率检查 |
+| 2026-06-04 | P3 Skills API + Local API | done | 已实现 Skills API、Local bootstrap/rotate/revoke、pf_local_ 管理 token、Skill manifest、单元测试、E2E 测试和 80%+ 覆盖率检查 |

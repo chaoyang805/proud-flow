@@ -72,6 +72,8 @@ describe("api client package", () => {
             requirement,
             currentArtifacts: { items: [] },
             historicalArtifacts: { items: [] },
+            requiredArtifactTypes: ["tech_design_pr"],
+            allowedActions: ["complete-stage"],
           },
         };
       if (url.endsWith("/manifest"))
@@ -132,7 +134,11 @@ describe("api client package", () => {
       if (url.includes("/bootstrap"))
         return {
           body: {
-            tokens: { skill: "pf_skill_abc", dispatcher: "pf_dispatcher_abc" },
+            tokens: {
+              skill: "pf_skill_abc",
+              dispatcher: "pf_dispatcher_abc",
+              local: "pf_local_abc",
+            },
           },
         };
       if (

@@ -37,6 +37,7 @@ describe("domain package", () => {
     assert.equal(isPriority("urgent"), true);
     assert.equal(isActorType("skill"), true);
     assert.equal(isTokenType("dispatcher"), true);
+    assert.equal(isTokenType("local"), true);
   });
 
   it("maps dispatch stages to active and review statuses", () => {

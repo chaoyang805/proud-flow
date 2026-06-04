@@ -13,10 +13,13 @@ describe("workspace e2e", () => {
 
     assert.equal(
       packageJson.scripts.typecheck,
-      "node scripts/turbo-run.mjs typecheck",
+      "pnpm build && node scripts/turbo-run.mjs typecheck",
     );
     assert.equal(packageJson.scripts.lint, "node scripts/lint.mjs");
-    assert.equal(packageJson.scripts.test, "node scripts/turbo-run.mjs test");
+    assert.equal(
+      packageJson.scripts.test,
+      "pnpm build && node scripts/turbo-run.mjs test",
+    );
     assert.equal(packageJson.scripts.build, "node scripts/turbo-run.mjs build");
   });
 
@@ -94,5 +97,97 @@ describe("workspace e2e", () => {
     const completedBody = await completed.json();
 
     assert.equal(completedBody.requirement.status, "tech-review");
+  });
+
+  it("runs a P3 local bootstrap and Skills API lifecycle through the Worker fetch app", async () => {
+    const { createApiApp, hashToken } = await import(
+      "../../apps/api/dist/index.js"
+    );
+    const app = createApiApp();
+    const bootstrapHash = await hashToken("bootstrap-e2e", "pepper");
+    const env = {
+      BOOTSTRAP_TOKEN_HASHES: bootstrapHash,
+      TOKEN_HASH_SECRET: "pepper",
+    };
+
+    const bootstrapped = await app.fetch(
+      new Request("https://api.test/api/local/bootstrap", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          bootstrapToken: "bootstrap-e2e",
+          machineName: "e2e-host",
+        }),
+      }),
+      env,
+    );
+    assert.equal(bootstrapped.status, 201);
+    const bootstrapBody = await bootstrapped.json();
+    assert.match(bootstrapBody.tokens.skill, /^pf_skill_/);
+    assert.match(bootstrapBody.tokens.dispatcher, /^pf_dispatcher_/);
+    assert.match(bootstrapBody.tokens.local, /^pf_local_/);
+
+    const created = await app.fetch(
+      new Request("https://api.test/api/requirements", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: "P3 E2E",
+          description: "Skills API",
+          priority: "high",
+        }),
+      }),
+      env,
+    );
+    const requirement = await created.json();
+
+    const skillHeaders = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${bootstrapBody.tokens.skill}`,
+    };
+    await app.fetch(
+      new Request(
+        `https://api.test/api/skills/requirements/${requirement.id}/status/start`,
+        {
+          method: "POST",
+          headers: skillHeaders,
+          body: JSON.stringify({ stage: "tech_design" }),
+        },
+      ),
+      env,
+    );
+    await app.fetch(
+      new Request(
+        `https://api.test/api/skills/requirements/${requirement.id}/artifacts`,
+        {
+          method: "POST",
+          headers: skillHeaders,
+          body: JSON.stringify({ type: "tech_design_pr", title: "PR" }),
+        },
+      ),
+      env,
+    );
+    const completed = await app.fetch(
+      new Request(
+        `https://api.test/api/skills/requirements/${requirement.id}/complete-stage`,
+        {
+          method: "POST",
+          headers: skillHeaders,
+          body: JSON.stringify({ stage: "tech_design" }),
+        },
+      ),
+      env,
+    );
+    const completedBody = await completed.json();
+    assert.equal(completedBody.requirement.status, "tech-review");
+
+    const forbidden = await app.fetch(
+      new Request(`https://api.test/api/requirements/${requirement.id}`, {
+        headers: { Authorization: `Bearer ${bootstrapBody.tokens.skill}` },
+      }),
+      env,
+    );
+    const forbiddenBody = await forbidden.json();
+    assert.equal(forbiddenBody.error.code, "FORBIDDEN");
   });
 });

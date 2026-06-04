@@ -1,4 +1,9 @@
-import { dispatchStages, type DispatchStage } from "@proud-flow/domain";
+import {
+  artifactTypes,
+  dispatchStages,
+  type ArtifactType,
+  type DispatchStage,
+} from "@proud-flow/domain";
 import {
   arraySchema,
   enumSchema,
@@ -26,6 +31,8 @@ export interface TaskContextResponse {
   requirement: RequirementResponse;
   currentArtifacts: ArtifactListResponse;
   historicalArtifacts: ArtifactListResponse;
+  requiredArtifactTypes: ArtifactType[];
+  allowedActions: string[];
   rollbackReason?: string;
 }
 
@@ -59,6 +66,10 @@ export const taskContextResponseSchema: Schema<TaskContextResponse> =
     requirement: requirementResponseSchema,
     currentArtifacts: artifactListResponseSchema,
     historicalArtifacts: artifactListResponseSchema,
+    requiredArtifactTypes: arraySchema(
+      enumSchema(artifactTypes) as Schema<ArtifactType>,
+    ),
+    allowedActions: arraySchema(stringSchema({ minLength: 1 })),
     rollbackReason: optionalSchema(stringSchema({ minLength: 1 })),
   });
 

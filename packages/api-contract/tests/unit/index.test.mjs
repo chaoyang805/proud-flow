@@ -6,6 +6,8 @@ import {
   dispatchMessageSchema,
   errorResponseSchema,
   localBootstrapResponseSchema,
+  rotateTokenRequestSchema,
+  rotateTokenResponseSchema,
   realtimeEventSchema,
   requirementResponseSchema,
   rollbackReviewRequestSchema,
@@ -78,13 +80,24 @@ describe("api contract package", () => {
         requirement,
         currentArtifacts: { items: [] },
         historicalArtifacts: { items: [] },
+        requiredArtifactTypes: ["tech_design_pr"],
+        allowedActions: ["complete-stage"],
       }),
       true,
     );
     assert.equal(
       localBootstrapResponseSchema.is({
-        tokens: { skill: "pf_skill_abc", dispatcher: "pf_dispatcher_abc" },
+        tokens: {
+          skill: "pf_skill_abc",
+          dispatcher: "pf_dispatcher_abc",
+          local: "pf_local_abc",
+        },
       }),
+      true,
+    );
+    assert.equal(rotateTokenRequestSchema.is({ tokenType: "local" }), true);
+    assert.equal(
+      rotateTokenResponseSchema.is({ token: "pf_local_new" }),
       true,
     );
     assert.equal(
