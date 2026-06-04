@@ -1,0 +1,115 @@
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+
+  .: {}
+
+  apps/api:
+    dependencies:
+      '@proud-flow/api-contract':
+        specifier: workspace:*
+        version: link:../../packages/api-contract
+      '@proud-flow/domain':
+        specifier: workspace:*
+        version: link:../../packages/domain
+    devDependencies:
+      '@proud-flow/config':
+        specifier: workspace:*
+        version: link:../../packages/config
+
+  apps/cli:
+    dependencies:
+      '@proud-flow/api-client':
+        specifier: workspace:*
+        version: link:../../packages/api-client
+      '@proud-flow/api-contract':
+        specifier: workspace:*
+        version: link:../../packages/api-contract
+      '@proud-flow/domain':
+        specifier: workspace:*
+        version: link:../../packages/domain
+    devDependencies:
+      '@proud-flow/config':
+        specifier: workspace:*
+        version: link:../../packages/config
+
+  apps/web:
+    dependencies:
+      '@proud-flow/api-client':
+        specifier: workspace:*
+        version: link:../../packages/api-client
+      '@proud-flow/api-contract':
+        specifier: workspace:*
+        version: link:../../packages/api-contract
+      '@proud-flow/domain':
+        specifier: workspace:*
+        version: link:../../packages/domain
+    devDependencies:
+      '@proud-flow/config':
+        specifier: workspace:*
+        version: link:../../packages/config
+
+  packages/api-client:
+    dependencies:
+      '@proud-flow/api-contract':
+        specifier: workspace:*
+        version: link:../api-contract
+      '@proud-flow/domain':
+        specifier: workspace:*
+        version: link:../domain
+    devDependencies:
+      '@proud-flow/config':
+        specifier: workspace:*
+        version: link:../config
+
+  packages/api-contract:
+    dependencies:
+      '@proud-flow/domain':
+        specifier: workspace:*
+        version: link:../domain
+    devDependencies:
+      '@proud-flow/config':
+        specifier: workspace:*
+        version: link:../config
+
+  packages/config: {}
+
+  packages/domain:
+    devDependencies:
+      '@proud-flow/config':
+        specifier: workspace:*
+        version: link:../config
+
+  skills/case-rundown:
+    dependencies:
+      '@proud-flow/domain':
+        specifier: workspace:*
+        version: link:../../packages/domain
+    devDependencies:
+      '@proud-flow/config':
+        specifier: workspace:*
+        version: link:../../packages/config
+
+  skills/development:
+    dependencies:
+      '@proud-flow/domain':
+        specifier: workspace:*
+        version: link:../../packages/domain
+    devDependencies:
+      '@proud-flow/config':
+        specifier: workspace:*
+        version: link:../../packages/config
+
+  skills/tech-design:
+    dependencies:
+      '@proud-flow/domain':
+        specifier: workspace:*
+        version: link:../../packages/domain
+    devDependencies:
+      '@proud-flow/config':
+        specifier: workspace:*
+        version: link:../../packages/config

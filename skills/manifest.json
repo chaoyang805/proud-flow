@@ -1,0 +1,8 @@
+{
+  "version": "0.1.0",
+  "skills": [
+    { "name": "tech-design", "version": "0.1.0" },
+    { "name": "case-rundown", "version": "0.1.0" },
+    { "name": "development", "version": "0.1.0" }
+  ]
+}

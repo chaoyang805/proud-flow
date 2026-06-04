@@ -15,9 +15,9 @@
 
 | 阶段 | 模块 | 目标 | 状态 |
 | --- | --- | --- | --- |
-| P0 | Monorepo 基础 | 初始化工程结构、包管理、构建和质量工具 | todo |
-| P1 | 公共包 | 定义领域类型、API contract、共享 client | todo |
-| P2 | 后端核心 | 实现 D1 数据模型、状态机、需求和产物 API | todo |
+| P0 | Monorepo 基础 | 初始化工程结构、包管理、构建和质量工具 | done |
+| P1 | 公共包 | 定义领域类型、API contract、共享 client | done |
+| P2 | 后端核心 | 实现 D1 数据模型、状态机、需求和产物 API | done |
 | P3 | Skills API + Local API | 支持 CLI helper、token bootstrap、Skill manifest | todo |
 | P4 | CLI helper | 实现 `proud-flow` 初始化和 Skills API helper | todo |
 | P5 | Daemon 派发 | 实现 WebSocket 连接、ACK、Codex Runner | todo |
@@ -32,31 +32,31 @@
 
 任务：
 
-- [ ] 初始化 `pnpm-workspace.yaml`
-- [ ] 初始化 `turbo.json`
-- [ ] 初始化根 `package.json`
-- [ ] 初始化 `tsconfig.base.json`
-- [ ] 建立 `apps/web`
-- [ ] 建立 `apps/api`
-- [ ] 建立 `apps/cli`
-- [ ] 建立 `packages/domain`
-- [ ] 建立 `packages/api-contract`
-- [ ] 建立 `packages/api-client`
-- [ ] 建立 `packages/config`
-- [ ] 建立 `skills/tech-design`
-- [ ] 建立 `skills/case-rundown`
-- [ ] 建立 `skills/development`
-- [ ] 配置 ESLint
-- [ ] 配置 Prettier
-- [ ] 配置 Vitest
-- [ ] 配置基础 CI 命令：`typecheck`、`lint`、`test`、`build`
+- [x] 初始化 `pnpm-workspace.yaml`
+- [x] 初始化 `turbo.json`
+- [x] 初始化根 `package.json`
+- [x] 初始化 `tsconfig.base.json`
+- [x] 建立 `apps/web`
+- [x] 建立 `apps/api`
+- [x] 建立 `apps/cli`
+- [x] 建立 `packages/domain`
+- [x] 建立 `packages/api-contract`
+- [x] 建立 `packages/api-client`
+- [x] 建立 `packages/config`
+- [x] 建立 `skills/tech-design`
+- [x] 建立 `skills/case-rundown`
+- [x] 建立 `skills/development`
+- [x] 配置 ESLint
+- [x] 配置 Prettier
+- [x] 配置 Vitest
+- [x] 配置基础 CI 命令：`typecheck`、`lint`、`test`、`build`
 
 验收标准：
 
-- [ ] 根目录可执行 `pnpm install`
-- [ ] 根目录可执行 `pnpm typecheck`
-- [ ] 根目录可执行 `pnpm lint`
-- [ ] 所有 workspace package 能被 TypeScript 正确解析
+- [x] 根目录可执行 `pnpm install`
+- [x] 根目录可执行 `pnpm typecheck`
+- [x] 根目录可执行 `pnpm lint`
+- [x] 所有 workspace package 能被 TypeScript 正确解析
 
 ## 4. P1 公共包
 
@@ -66,59 +66,59 @@
 
 任务：
 
-- [ ] 定义 `RequirementStatus`
-- [ ] 定义 `DispatchStage`
-- [ ] 定义 status 与 stage 的映射
-- [ ] 定义 `Priority`
-- [ ] 定义 `ArtifactType`
-- [ ] 定义 `ActorType`
-- [ ] 定义 `TokenType`
-- [ ] 定义 `ErrorCode`
-- [ ] 定义 `RealtimeEvent`
-- [ ] 定义 `DispatchMessage`
-- [ ] 定义 ID parser 和格式校验
+- [x] 定义 `RequirementStatus`
+- [x] 定义 `DispatchStage`
+- [x] 定义 status 与 stage 的映射
+- [x] 定义 `Priority`
+- [x] 定义 `ArtifactType`
+- [x] 定义 `ActorType`
+- [x] 定义 `TokenType`
+- [x] 定义 `ErrorCode`
+- [x] 定义 `RealtimeEvent`
+- [x] 定义 `DispatchMessage`
+- [x] 定义 ID parser 和格式校验
 
 验收标准：
 
-- [ ] 所有类型不依赖运行时框架
-- [ ] 单元测试覆盖 stage/status 映射
+- [x] 所有类型不依赖运行时框架
+- [x] 单元测试覆盖 stage/status 映射
 
 ### 4.2 `packages/api-contract`
 
 任务：
 
-- [ ] 定义 common error response schema
-- [ ] 定义 requirements API schema
-- [ ] 定义 reviews API schema
-- [ ] 定义 artifacts API schema
-- [ ] 定义 dispatch API schema
-- [ ] 定义 realtime WebSocket message schema
-- [ ] 定义 skills API schema
-- [ ] 定义 local API schema
-- [ ] 生成 OpenAPI JSON
+- [x] 定义 common error response schema
+- [x] 定义 requirements API schema
+- [x] 定义 reviews API schema
+- [x] 定义 artifacts API schema
+- [x] 定义 dispatch API schema
+- [x] 定义 realtime WebSocket message schema
+- [x] 定义 skills API schema
+- [x] 定义 local API schema
+- [x] 生成 OpenAPI JSON
 
 验收标准：
 
-- [ ] request / response schema 可被后端路由复用
-- [ ] schema 可推导前端和 CLI 类型
-- [ ] `openapi.json` 可生成
+- [x] request / response schema 可被后端路由复用
+- [x] schema 可推导前端和 CLI 类型
+- [x] `openapi.json` 可生成
 
 ### 4.3 `packages/api-client`
 
 任务：
 
-- [ ] 实现基础 typed fetch client
-- [ ] 实现错误码解析
-- [ ] 实现 user API client
-- [ ] 实现 skills API client
-- [ ] 实现 local API client
-- [ ] 实现 dispatch API client
+- [x] 实现基础 typed fetch client
+- [x] 实现错误码解析
+- [x] 实现 user API client
+- [x] 实现 skills API client
+- [x] 实现 local API client
+- [x] 实现 dispatch API client
 
 验收标准：
 
-- [ ] Web 可注入 user token 使用
-- [ ] CLI 可注入 skill / dispatcher token 使用
-- [ ] 不在 client 内保存 token 或决定环境地址
+- [x] Web 可注入 user token 使用
+- [x] CLI 可注入 skill / dispatcher token 使用
+- [x] 不在 client 内保存 token 或决定环境地址
 
 ## 5. P2 后端核心
 
@@ -126,28 +126,28 @@
 
 任务：
 
-- [ ] 初始化 Hono Worker
-- [ ] 配置 Cloudflare D1 binding
-- [ ] 配置 Cloudflare R2 binding
-- [ ] 设计并创建 `requirements` 表
-- [ ] 设计并创建 `artifacts` 表
-- [ ] 设计并创建 `api_tokens` 表
-- [ ] 实现 token hash 校验
-- [ ] 实现统一错误响应
-- [ ] 实现 requirements CRUD
-- [ ] 实现 workflow 状态机
-- [ ] 实现 review approve
-- [ ] 实现 review rollback
-- [ ] 实现 archive
-- [ ] 实现 artifact list/create
-- [ ] 实现 artifact upload 到 R2
+- [x] 初始化 Hono Worker
+- [x] 配置 Cloudflare D1 binding
+- [x] 配置 Cloudflare R2 binding
+- [x] 设计并创建 `requirements` 表
+- [x] 设计并创建 `artifacts` 表
+- [x] 设计并创建 `api_tokens` 表
+- [x] 实现 token hash 校验
+- [x] 实现统一错误响应
+- [x] 实现 requirements CRUD
+- [x] 实现 workflow 状态机
+- [x] 实现 review approve
+- [x] 实现 review rollback
+- [x] 实现 archive
+- [x] 实现 artifact list/create
+- [x] 实现 artifact upload 到 R2
 
 验收标准：
 
-- [ ] 状态流转只通过 workflow 模块
-- [ ] 非法状态流转返回 `INVALID_STATUS_TRANSITION`
-- [ ] 缺少产物返回 `MISSING_REQUIRED_ARTIFACT`
-- [ ] 回退会递增 `requirements.version`
+- [x] 状态流转只通过 workflow 模块
+- [x] 非法状态流转返回 `INVALID_STATUS_TRANSITION`
+- [x] 缺少产物返回 `MISSING_REQUIRED_ARTIFACT`
+- [x] 回退会递增 `requirements.version`
 
 ## 6. P3 Skills API + Local API
 
@@ -402,3 +402,6 @@ web requirement detail + dispatch
 | 2026-06-04 | Proud Flow CLI 技术设计 | done | 合并 daemon、CLI helper、Skill 管理 |
 | 2026-06-04 | 仓库结构与工程化方案 | done | 已定义 monorepo 和共享包方案 |
 | 2026-06-04 | 开发 Roadmap | done | 当前文档 |
+| 2026-06-04 | P0 Monorepo 基础 | done | 已初始化 pnpm workspace、工程骨架、质量命令、单元测试、E2E 测试和覆盖率检查 |
+| 2026-06-04 | P1 公共包 | done | 已实现 domain 类型与状态映射、API contract schema/OpenAPI、typed API client、单元测试、E2E 测试和 80%+ 覆盖率检查 |
+| 2026-06-04 | P2 后端核心 | done | 已实现 Worker fetch app、D1/R2 binding 类型、requirements/reviews/artifacts/workflow API、token hash 校验、迁移 SQL、单元测试、E2E 测试和 80%+ 覆盖率检查 |
