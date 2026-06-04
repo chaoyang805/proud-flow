@@ -17,7 +17,7 @@
 | --- | --- | --- | --- |
 | P0 | Monorepo 基础 | 初始化工程结构、包管理、构建和质量工具 | done |
 | P1 | 公共包 | 定义领域类型、API contract、共享 client | done |
-| P2 | 后端核心 | 实现 D1 数据模型、状态机、需求和产物 API | todo |
+| P2 | 后端核心 | 实现 D1 数据模型、状态机、需求和产物 API | done |
 | P3 | Skills API + Local API | 支持 CLI helper、token bootstrap、Skill manifest | todo |
 | P4 | CLI helper | 实现 `proud-flow` 初始化和 Skills API helper | todo |
 | P5 | Daemon 派发 | 实现 WebSocket 连接、ACK、Codex Runner | todo |
@@ -126,28 +126,28 @@
 
 任务：
 
-- [ ] 初始化 Hono Worker
-- [ ] 配置 Cloudflare D1 binding
-- [ ] 配置 Cloudflare R2 binding
-- [ ] 设计并创建 `requirements` 表
-- [ ] 设计并创建 `artifacts` 表
-- [ ] 设计并创建 `api_tokens` 表
-- [ ] 实现 token hash 校验
-- [ ] 实现统一错误响应
-- [ ] 实现 requirements CRUD
-- [ ] 实现 workflow 状态机
-- [ ] 实现 review approve
-- [ ] 实现 review rollback
-- [ ] 实现 archive
-- [ ] 实现 artifact list/create
-- [ ] 实现 artifact upload 到 R2
+- [x] 初始化 Hono Worker
+- [x] 配置 Cloudflare D1 binding
+- [x] 配置 Cloudflare R2 binding
+- [x] 设计并创建 `requirements` 表
+- [x] 设计并创建 `artifacts` 表
+- [x] 设计并创建 `api_tokens` 表
+- [x] 实现 token hash 校验
+- [x] 实现统一错误响应
+- [x] 实现 requirements CRUD
+- [x] 实现 workflow 状态机
+- [x] 实现 review approve
+- [x] 实现 review rollback
+- [x] 实现 archive
+- [x] 实现 artifact list/create
+- [x] 实现 artifact upload 到 R2
 
 验收标准：
 
-- [ ] 状态流转只通过 workflow 模块
-- [ ] 非法状态流转返回 `INVALID_STATUS_TRANSITION`
-- [ ] 缺少产物返回 `MISSING_REQUIRED_ARTIFACT`
-- [ ] 回退会递增 `requirements.version`
+- [x] 状态流转只通过 workflow 模块
+- [x] 非法状态流转返回 `INVALID_STATUS_TRANSITION`
+- [x] 缺少产物返回 `MISSING_REQUIRED_ARTIFACT`
+- [x] 回退会递增 `requirements.version`
 
 ## 6. P3 Skills API + Local API
 
@@ -404,3 +404,4 @@ web requirement detail + dispatch
 | 2026-06-04 | 开发 Roadmap | done | 当前文档 |
 | 2026-06-04 | P0 Monorepo 基础 | done | 已初始化 pnpm workspace、工程骨架、质量命令、单元测试、E2E 测试和覆盖率检查 |
 | 2026-06-04 | P1 公共包 | done | 已实现 domain 类型与状态映射、API contract schema/OpenAPI、typed API client、单元测试、E2E 测试和 80%+ 覆盖率检查 |
+| 2026-06-04 | P2 后端核心 | done | 已实现 Worker fetch app、D1/R2 binding 类型、requirements/reviews/artifacts/workflow API、token hash 校验、迁移 SQL、单元测试、E2E 测试和 80%+ 覆盖率检查 |
