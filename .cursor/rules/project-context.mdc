@@ -1,0 +1,75 @@
+---
+description: Proud Flow project overview, architecture, documentation index, and agent working conventions.
+alwaysApply: true
+---
+
+# Proud Flow Project Context
+
+## Project Summary
+
+Proud Flow is an AI-assisted requirements management platform. It manages the lifecycle of a requirement from creation, technical design, test case design, development delivery, review, acceptance, and archive.
+
+The platform does not replace Codex for implementation. It manages requirement state, human review, AI dispatch, AI artifact collection, notifications, and archive. Codex performs technical design, test case design, and code development through installed Skills.
+
+## Current Architecture
+
+The first version is organized around three major modules:
+
+1. Web frontend
+2. Cloudflare-native backend
+3. Proud Flow Local CLI / Daemon
+
+Key decisions:
+
+- Backend is the business authority for state machine, permissions, data storage, artifacts, dispatch entrypoints, and API validation.
+- Frontend only presents data and triggers operations. It does not implement complex workflow rules.
+- Proud Flow Local CLI / Daemon is the local entrypoint. It connects to backend dispatch WebSocket, starts Codex, installs and updates Skills, manages local tokens, and acts as the Skills API helper.
+- Skills contain complex prompts, stage instructions, artifact requirements, and execution checklists.
+- First version does not require users to configure a separate remote tool server.
+- TypeScript is used across frontend, backend, CLI, shared packages, and Skills helper code.
+
+## Recommended Repository Shape
+
+The planned repository is a TypeScript monorepo:
+
+```text
+apps/web        Next.js frontend
+apps/api        Cloudflare Workers + Hono backend
+apps/cli        proud-flow CLI / daemon
+packages/domain Shared domain types and pure functions
+packages/api-contract Zod schemas and OpenAPI generation
+packages/api-client Shared typed API client
+packages/config Shared TypeScript, lint, format, and test config
+skills/*        Codex Skills
+docs/*          Product, technical, engineering, and roadmap docs
+```
+
+## Shared Types And Contracts
+
+Use shared packages instead of duplicating types:
+
+- `@proud-flow/domain` for requirement statuses, dispatch stages, artifact types, token types, actor types, realtime event types, error codes, and pure mapping functions.
+- `@proud-flow/api-contract` for Zod request / response schemas and generated OpenAPI.
+- `@proud-flow/api-client` for typed API clients reused by the frontend and CLI.
+
+The backend remains the source of truth for workflow transitions. Frontend and CLI may use shared constants for display and validation hints, but must rely on backend responses for final business decisions.
+
+## Important Documentation
+
+- [Product Design](docs/product-design.md) - product positioning, module boundaries, lifecycle, and collaboration flow.
+- [Backend Technical Design](docs/backend-technical-design.md) - Cloudflare-native backend, D1/R2/Durable Objects, APIs, auth, workflow, realtime events.
+- [Frontend Technical Design](docs/frontend-technical-design.md) - Next.js frontend, pages, API integration, WebSocket realtime events, review UI.
+- [Proud Flow CLI Technical Design](docs/proud-flow-cli-technical-design.md) - local CLI / daemon, token management, Skill install/update, dispatch, CLI helper commands.
+- [Repository Structure And Engineering](docs/repository-structure-and-engineering.md) - monorepo structure, shared packages, testing, deployment, type reuse.
+- [Development Roadmap](docs/development-roadmap.md) - implementation phases, task checklist, acceptance criteria, and current progress.
+
+## Agent Working Conventions
+
+- Always respond in Simplified Chinese for this project.
+- Before implementing code, check the relevant design docs above and preserve the current architecture decisions.
+- Prefer updating shared domain types and API contracts before implementing app-specific code.
+- Do not duplicate API request / response types across frontend, backend, and CLI.
+- Keep backend workflow logic centralized in the backend workflow module.
+- Keep Skills free of tokens and raw HTTP details; Skills should call `proud-flow` CLI helper commands.
+- Do not reintroduce a separate first-version tool server unless the design docs are explicitly changed.
+

@@ -1,0 +1,404 @@
+# 开发 Roadmap
+
+## 1. Roadmap 目标
+
+这份 roadmap 用于记录 Proud Flow 从设计文档进入代码落地的开发顺序、任务拆解和进度。整体策略是先落公共契约，再实现后端权威能力，然后接入 CLI / Daemon、Skills 和前端，最后跑通端到端闭环。
+
+状态说明：
+
+- `todo`：未开始
+- `doing`：开发中
+- `blocked`：被依赖或问题阻塞
+- `done`：已完成
+
+## 2. 总体阶段
+
+| 阶段 | 模块 | 目标 | 状态 |
+| --- | --- | --- | --- |
+| P0 | Monorepo 基础 | 初始化工程结构、包管理、构建和质量工具 | todo |
+| P1 | 公共包 | 定义领域类型、API contract、共享 client | todo |
+| P2 | 后端核心 | 实现 D1 数据模型、状态机、需求和产物 API | todo |
+| P3 | Skills API + Local API | 支持 CLI helper、token bootstrap、Skill manifest | todo |
+| P4 | CLI helper | 实现 `proud-flow` 初始化和 Skills API helper | todo |
+| P5 | Daemon 派发 | 实现 WebSocket 连接、ACK、Codex Runner | todo |
+| P6 | Skills | 实现三个 Codex Skills | todo |
+| P7 | 前端 MVP | 实现需求管理、review、派发和实时刷新 | todo |
+| P8 | E2E 闭环 | 跑通完整需求生命周期 | todo |
+| P9 | 发布准备 | 部署、文档、测试补齐和版本发布 | todo |
+
+## 3. P0 Monorepo 基础
+
+目标：搭好仓库骨架，让后续模块可以按统一 TypeScript 工程方式开发。
+
+任务：
+
+- [ ] 初始化 `pnpm-workspace.yaml`
+- [ ] 初始化 `turbo.json`
+- [ ] 初始化根 `package.json`
+- [ ] 初始化 `tsconfig.base.json`
+- [ ] 建立 `apps/web`
+- [ ] 建立 `apps/api`
+- [ ] 建立 `apps/cli`
+- [ ] 建立 `packages/domain`
+- [ ] 建立 `packages/api-contract`
+- [ ] 建立 `packages/api-client`
+- [ ] 建立 `packages/config`
+- [ ] 建立 `skills/tech-design`
+- [ ] 建立 `skills/case-rundown`
+- [ ] 建立 `skills/development`
+- [ ] 配置 ESLint
+- [ ] 配置 Prettier
+- [ ] 配置 Vitest
+- [ ] 配置基础 CI 命令：`typecheck`、`lint`、`test`、`build`
+
+验收标准：
+
+- [ ] 根目录可执行 `pnpm install`
+- [ ] 根目录可执行 `pnpm typecheck`
+- [ ] 根目录可执行 `pnpm lint`
+- [ ] 所有 workspace package 能被 TypeScript 正确解析
+
+## 4. P1 公共包
+
+目标：先定义跨模块复用的领域类型和 API 契约，避免前端、后端、CLI 各自手写类型。
+
+### 4.1 `packages/domain`
+
+任务：
+
+- [ ] 定义 `RequirementStatus`
+- [ ] 定义 `DispatchStage`
+- [ ] 定义 status 与 stage 的映射
+- [ ] 定义 `Priority`
+- [ ] 定义 `ArtifactType`
+- [ ] 定义 `ActorType`
+- [ ] 定义 `TokenType`
+- [ ] 定义 `ErrorCode`
+- [ ] 定义 `RealtimeEvent`
+- [ ] 定义 `DispatchMessage`
+- [ ] 定义 ID parser 和格式校验
+
+验收标准：
+
+- [ ] 所有类型不依赖运行时框架
+- [ ] 单元测试覆盖 stage/status 映射
+
+### 4.2 `packages/api-contract`
+
+任务：
+
+- [ ] 定义 common error response schema
+- [ ] 定义 requirements API schema
+- [ ] 定义 reviews API schema
+- [ ] 定义 artifacts API schema
+- [ ] 定义 dispatch API schema
+- [ ] 定义 realtime WebSocket message schema
+- [ ] 定义 skills API schema
+- [ ] 定义 local API schema
+- [ ] 生成 OpenAPI JSON
+
+验收标准：
+
+- [ ] request / response schema 可被后端路由复用
+- [ ] schema 可推导前端和 CLI 类型
+- [ ] `openapi.json` 可生成
+
+### 4.3 `packages/api-client`
+
+任务：
+
+- [ ] 实现基础 typed fetch client
+- [ ] 实现错误码解析
+- [ ] 实现 user API client
+- [ ] 实现 skills API client
+- [ ] 实现 local API client
+- [ ] 实现 dispatch API client
+
+验收标准：
+
+- [ ] Web 可注入 user token 使用
+- [ ] CLI 可注入 skill / dispatcher token 使用
+- [ ] 不在 client 内保存 token 或决定环境地址
+
+## 5. P2 后端核心
+
+目标：先把业务权威能力落在后端，包括数据模型、状态机、需求、产物和 review。
+
+任务：
+
+- [ ] 初始化 Hono Worker
+- [ ] 配置 Cloudflare D1 binding
+- [ ] 配置 Cloudflare R2 binding
+- [ ] 设计并创建 `requirements` 表
+- [ ] 设计并创建 `artifacts` 表
+- [ ] 设计并创建 `api_tokens` 表
+- [ ] 实现 token hash 校验
+- [ ] 实现统一错误响应
+- [ ] 实现 requirements CRUD
+- [ ] 实现 workflow 状态机
+- [ ] 实现 review approve
+- [ ] 实现 review rollback
+- [ ] 实现 archive
+- [ ] 实现 artifact list/create
+- [ ] 实现 artifact upload 到 R2
+
+验收标准：
+
+- [ ] 状态流转只通过 workflow 模块
+- [ ] 非法状态流转返回 `INVALID_STATUS_TRANSITION`
+- [ ] 缺少产物返回 `MISSING_REQUIRED_ARTIFACT`
+- [ ] 回退会递增 `requirements.version`
+
+## 6. P3 Skills API + Local API
+
+目标：支持 CLI helper 和本地初始化流程。
+
+### 6.1 Skills API
+
+任务：
+
+- [ ] `GET /api/skills/requirements/:id`
+- [ ] `GET /api/skills/requirements/:id/task-context`
+- [ ] `POST /api/skills/requirements/:id/status/start`
+- [ ] `POST /api/skills/requirements/:id/artifacts`
+- [ ] `POST /api/skills/requirements/:id/artifacts/upload`
+- [ ] `POST /api/skills/requirements/:id/complete-stage`
+- [ ] `POST /api/skills/requirements/:id/fail-stage`
+- [ ] `POST /api/skills/requirements/:id/notes`
+
+验收标准：
+
+- [ ] skill token 只能访问 Skills API
+- [ ] `complete-stage` 会校验当前状态和必需产物
+- [ ] `fail-stage` 不自动回退需求状态
+
+### 6.2 Local API
+
+任务：
+
+- [ ] `POST /api/local/bootstrap`
+- [ ] `POST /api/local/tokens/rotate`
+- [ ] `POST /api/local/tokens/revoke`
+- [ ] `GET /api/local/skills/manifest`
+- [ ] 后端生成 `pf_skill_` token
+- [ ] 后端生成 `pf_dispatcher_` token
+- [ ] token 明文只返回一次
+
+验收标准：
+
+- [ ] token 只存 hash
+- [ ] bootstrap 可返回 CLI 初始化所需 token
+- [ ] manifest 包含 Skill 版本、下载地址、sha256 和兼容 CLI 版本
+
+## 7. P4 CLI Helper
+
+目标：让 Skills 可以通过本地 `proud-flow` 命令稳定调用平台 API。
+
+任务：
+
+- [ ] 初始化 CLI app
+- [ ] 实现 prod / dev 固定后端地址映射
+- [ ] 实现开发者环境变量覆盖
+- [ ] 实现本地配置读写
+- [ ] 实现 macOS Keychain token 存储
+- [ ] 实现 `proud-flow init`
+- [ ] 实现 `proud-flow status`
+- [ ] 实现 `proud-flow auth status`
+- [ ] 实现 `proud-flow auth rotate`
+- [ ] 实现 `proud-flow auth logout`
+- [ ] 实现 `proud-flow get-requirement`
+- [ ] 实现 `proud-flow get-task-context`
+- [ ] 实现 `proud-flow start-stage`
+- [ ] 实现 `proud-flow attach-artifact`
+- [ ] 实现 `proud-flow upload-artifact`
+- [ ] 实现 `proud-flow complete-stage`
+- [ ] 实现 `proud-flow fail-stage`
+- [ ] 实现 `proud-flow append-note`
+- [ ] 支持 `--json` 输出
+- [ ] 默认输出模型易读 Markdown
+
+验收标准：
+
+- [ ] CLI 输出不泄露 token
+- [ ] helper 命令能连接本地 dev API
+- [ ] 错误响应包含稳定错误码
+
+## 8. P5 Daemon 派发
+
+目标：让后端可以把任务派发给本地 Codex。
+
+任务：
+
+- [ ] 实现 `proud-flow daemon`
+- [ ] 实现 `/api/dispatch/ws` 连接
+- [ ] 实现 dispatcher token 鉴权
+- [ ] 实现心跳
+- [ ] 实现断线重连
+- [ ] 实现 `dispatch.requested` schema 校验
+- [ ] 实现 stage 到 Skill 指令映射
+- [ ] 实现 Codex Runner mock
+- [ ] 实现真实 Codex Runner
+- [ ] 实现 ACK 成功
+- [ ] 实现 ACK 失败
+- [ ] 实现 busy 保护
+- [ ] 实现 requestId 去重
+
+验收标准：
+
+- [ ] 后端派发后 daemon 能 ACK
+- [ ] Codex 不可用时返回失败 ACK
+- [ ] daemon 不执行远端动态命令
+
+## 9. P6 Skills
+
+目标：实现三个最小可用 Codex Skills。
+
+任务：
+
+- [ ] 实现 `skills/tech-design/SKILL.md`
+- [ ] 实现 `skills/case-rundown/SKILL.md`
+- [ ] 实现 `skills/development/SKILL.md`
+- [ ] 实现 `skills/manifest.json`
+- [ ] 实现 Skill 打包脚本
+- [ ] 实现 `proud-flow skill install`
+- [ ] 实现 `proud-flow skill update`
+- [ ] 实现 `proud-flow skill status`
+- [ ] 实现下载包 sha256 校验
+- [ ] 实现本地修改检测
+
+验收标准：
+
+- [ ] `/tech-design REQ-xxx` 能调用 CLI helper 读取上下文
+- [ ] Skill 文档不包含 token
+- [ ] Skill 不直接手写 HTTP
+
+## 10. P7 前端 MVP
+
+目标：实现用户可用的 Web 工作台。
+
+任务：
+
+- [ ] 初始化 Next.js app
+- [ ] 接入 Tailwind CSS
+- [ ] 接入基础 UI 组件
+- [ ] 接入 TanStack Query
+- [ ] 实现 user token 配置
+- [ ] 实现需求列表页
+- [ ] 实现创建需求页
+- [ ] 实现需求详情页
+- [ ] 实现 artifact 展示
+- [ ] 实现当前版本 / 历史版本分组
+- [ ] 实现 dispatch 按钮
+- [ ] 实现 review approve
+- [ ] 实现 rollback dialog
+- [ ] 实现 archive
+- [ ] 实现 WebSocket realtime client
+- [ ] 实现 toast 提示
+- [ ] 实现重连后刷新
+
+验收标准：
+
+- [ ] 前端不自行判断复杂状态流转
+- [ ] WebSocket 事件只触发刷新，不作为权威数据源
+- [ ] `DISPATCHER_OFFLINE` 能正确提示
+
+## 11. P8 E2E 闭环
+
+目标：跑通第一条真实工作流。
+
+最小闭环：
+
+- [ ] 创建需求
+- [ ] 派发技术方案设计
+- [ ] daemon 收到 `dispatch.requested`
+- [ ] daemon 启动 `/tech-design REQ-xxx`
+- [ ] Skill 运行 `get-task-context`
+- [ ] Skill 运行 `start-stage`
+- [ ] Skill 登记技术方案产物
+- [ ] Skill 运行 `complete-stage`
+- [ ] 后端进入 `tech-review`
+- [ ] 前端收到 WebSocket 事件并刷新
+- [ ] 用户 review 通过并派发用例设计
+- [ ] 用例设计进入 `case-review`
+- [ ] 用户 review 通过并派发开发
+- [ ] 开发进入 `delivery`
+- [ ] 用户验收归档
+
+验收标准：
+
+- [ ] 完整状态流转无手工改数据库
+- [ ] 所有状态变更都有后端校验
+- [ ] 前端、后端、CLI、Skill 四端类型一致
+
+## 12. P9 发布准备
+
+任务：
+
+- [ ] 配置 dev Cloudflare Workers
+- [ ] 配置 prod Cloudflare Workers
+- [ ] 配置 D1 dev/prod
+- [ ] 配置 R2 dev/prod
+- [ ] 配置 Durable Objects
+- [ ] 部署前端
+- [ ] 发布 CLI 包
+- [ ] 发布 Skill 包
+- [ ] 配置 Skill manifest
+- [ ] 补充 README
+- [ ] 补充本地开发文档
+- [ ] 补充部署文档
+- [ ] 补充故障排查文档
+
+验收标准：
+
+- [ ] 新机器可按文档完成 `proud-flow init`
+- [ ] 前端可连接 prod API
+- [ ] daemon 可连接 prod dispatch WebSocket
+- [ ] Skill 可通过 CLI helper 回写 prod 后端
+
+## 13. 推荐并行策略
+
+必须串行：
+
+```text
+P0 Monorepo
+  -> P1 domain / api-contract
+    -> P2 后端核心
+```
+
+可以并行：
+
+```text
+P2 后端核心
+  -> P3 Skills API + Local API
+  -> P7 前端基础页面
+```
+
+```text
+P3 Skills API + Local API
+  -> P4 CLI helper
+  -> P5 daemon
+  -> P6 Skills
+```
+
+第一条最小闭环优先：
+
+```text
+domain
+api-contract
+api requirements + workflow + artifacts + skills-api
+cli helper
+tech-design Skill
+dispatch WebSocket
+web requirement detail + dispatch
+```
+
+## 14. 当前进度
+
+| 日期 | 事项 | 状态 | 备注 |
+| --- | --- | --- | --- |
+| 2026-06-04 | 产品设计文档 | done | 已完成第一版设计 |
+| 2026-06-04 | 后端技术设计 | done | 已切换 Cloudflare-native 方案 |
+| 2026-06-04 | 前端技术设计 | done | 实时事件改为 WebSocket |
+| 2026-06-04 | Proud Flow CLI 技术设计 | done | 合并 daemon、CLI helper、Skill 管理 |
+| 2026-06-04 | 仓库结构与工程化方案 | done | 已定义 monorepo 和共享包方案 |
+| 2026-06-04 | 开发 Roadmap | done | 当前文档 |
