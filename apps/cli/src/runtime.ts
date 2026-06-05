@@ -31,6 +31,8 @@ export interface CliRuntime {
   store: CliConfigStore;
   keychain: CliKeychain;
   readFile(path: string): Promise<Uint8Array>;
+  writeFile(path: string, content: Uint8Array): Promise<void>;
+  listFiles(pathPrefix: string): Promise<string[]>;
 }
 
 export function createMemoryCliRuntime(
@@ -73,6 +75,14 @@ export function createMemoryCliRuntime(
       const value = files.get(path);
       if (!value) throw new Error(`File not found: ${path}`);
       return value;
+    },
+    async writeFile(path, content) {
+      files.set(path, content);
+    },
+    async listFiles(pathPrefix) {
+      return Array.from(files.keys()).filter((path) =>
+        path.startsWith(pathPrefix),
+      );
     },
   };
 }

@@ -4,6 +4,11 @@ export function createMockFetch(handler) {
   const mock = async (url, init = {}) => {
     calls.push({ url: String(url), init });
     const result = handler(String(url), init);
+    if (result.rawBody) {
+      return new Response(result.rawBody, {
+        status: result.status ?? 200,
+      });
+    }
     return new Response(JSON.stringify(result.body ?? {}), {
       status: result.status ?? 200,
     });

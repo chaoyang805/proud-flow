@@ -6,6 +6,7 @@ import {
 import type { ArtifactType, DispatchStage } from "@proud-flow/domain";
 import { getBackendUrl, isEnvironment } from "./environment";
 import type { CliConfig, CliRuntime, StoredTokenType } from "./runtime";
+import { getSkillStatuses, installSkills } from "./skills/installer";
 
 export interface CliResult {
   exitCode: number;
@@ -50,6 +51,7 @@ async function dispatch(parsed: ParsedArgs, runtime: CliRuntime): Promise<string
   if (command === "auth" && subcommand === "logout") {
     return authLogoutCommand(runtime);
   }
+  if (command === "skill") return skillCommand(parsed, runtime);
   if (command === "daemon") return daemonCommand(parsed, runtime);
   return skillHelperCommand(parsed, runtime);
 }
@@ -164,6 +166,36 @@ async function daemonCommand(
     : `Proud Flow daemon ready\nEnvironment: ${payload.environment}\n`;
 }
 
+async function skillCommand(
+  parsed: ParsedArgs,
+  runtime: CliRuntime,
+): Promise<string> {
+  const subcommand = parsed.command[1];
+  const client = await createLocalClient(runtime);
+  const manifest = await client.local.getSkillManifest();
+  if (subcommand === "install" || subcommand === "update") {
+    const result = await installSkills(runtime, manifest, {
+      force: parsed.flags.force === true,
+    });
+    return parsed.json
+      ? json(result)
+      : `Installed Skills: ${result.installed.map((item) => item.name).join(", ") || "none"}\nSkipped: ${result.skipped.map((item) => item.name).join(", ") || "none"}\n`;
+  }
+  if (subcommand === "status") {
+    const payload = { skills: await getSkillStatuses(runtime, manifest) };
+    return parsed.json
+      ? json(payload)
+      : payload.skills
+          .map(
+            (skill) =>
+              `${skill.name}: ${skill.status} (${skill.localVersion ?? "not installed"} -> ${skill.remoteVersion})`,
+          )
+          .join("\n")
+          .concat("\n");
+  }
+  throw new Error(`Unknown skill command: ${subcommand ?? ""}`);
+}
+
 async function skillHelperCommand(
   parsed: ParsedArgs,
   runtime: CliRuntime,
@@ -260,7 +292,10 @@ function parseArgs(args: readonly string[]): ParsedArgs {
         flags[key] = next;
         index += 1;
       }
-    } else if (command.length === 0 || (command[0] === "auth" && command.length === 1)) {
+    } else if (
+      command.length === 0 ||
+      ((command[0] === "auth" || command[0] === "skill") && command.length === 1)
+    ) {
       command.push(item);
     } else {
       positional.push(item);

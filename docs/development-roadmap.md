@@ -21,7 +21,7 @@
 | P3 | Skills API + Local API | 支持 CLI helper、token bootstrap、Skill manifest | done |
 | P4 | CLI helper | 实现 `proud-flow` 初始化和 Skills API helper | done |
 | P5 | Daemon 派发 | 实现 WebSocket 连接、ACK、Codex Runner | done |
-| P6 | Skills | 实现三个 Codex Skills | todo |
+| P6 | Skills | 实现三个 Codex Skills | done |
 | P7 | 前端 MVP | 实现需求管理、review、派发和实时刷新 | todo |
 | P8 | E2E 闭环 | 跑通完整需求生命周期 | todo |
 | P9 | 发布准备 | 部署、文档、测试补齐和版本发布 | todo |
@@ -255,22 +255,22 @@
 
 任务：
 
-- [ ] 实现 `skills/tech-design/SKILL.md`
-- [ ] 实现 `skills/case-rundown/SKILL.md`
-- [ ] 实现 `skills/development/SKILL.md`
-- [ ] 实现 `skills/manifest.json`
-- [ ] 实现 Skill 打包脚本
-- [ ] 实现 `proud-flow skill install`
-- [ ] 实现 `proud-flow skill update`
-- [ ] 实现 `proud-flow skill status`
-- [ ] 实现下载包 sha256 校验
-- [ ] 实现本地修改检测
+- [x] 实现 `skills/tech-design/SKILL.md`
+- [x] 实现 `skills/case-rundown/SKILL.md`
+- [x] 实现 `skills/development/SKILL.md`
+- [x] 实现 `skills/manifest.json`
+- [x] 实现 Skill 打包脚本
+- [x] 实现 `proud-flow skill install`
+- [x] 实现 `proud-flow skill update`
+- [x] 实现 `proud-flow skill status`
+- [x] 实现下载包 sha256 校验
+- [x] 实现本地修改检测
 
 验收标准：
 
-- [ ] `/tech-design REQ-xxx` 能调用 CLI helper 读取上下文
-- [ ] Skill 文档不包含 token
-- [ ] Skill 不直接手写 HTTP
+- [x] `/tech-design REQ-xxx` 能调用 CLI helper 读取上下文
+- [x] Skill 文档不包含 token
+- [x] Skill 不直接手写 HTTP
 
 ## 10. P7 前端 MVP
 
@@ -408,3 +408,4 @@ web requirement detail + dispatch
 | 2026-06-04 | P3 Skills API + Local API | done | 已实现 Skills API、Local bootstrap/rotate/revoke、pf_local_ 管理 token、Skill manifest、单元测试、E2E 测试和 80%+ 覆盖率检查 |
 | 2026-06-04 | P4 CLI Helper | done | 已实现 CLI 初始化、auth 管理、Skills API helper、JSON/Markdown 输出、单元测试、E2E 测试和 80%+ 覆盖率检查 |
 | 2026-06-04 | P5 Daemon 派发 | done | 已实现 dispatcher WebSocket 鉴权入口、daemon 协议处理、固定 Skill 指令映射、Codex Runner、ACK/busy/去重/心跳/重连退避；daemon/dispatch 新增测试直接测源码并通过 80%+ 覆盖率检查 |
+| 2026-06-05 | P6 Skills | done | 已实现三个 Codex Skill 工作流、Skill manifest/package 脚本、CLI install/update/status、sha256 校验和本地修改检测；新增单元测试与 e2e 测试并通过 80%+ 覆盖率检查 |

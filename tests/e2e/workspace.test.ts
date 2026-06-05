@@ -268,4 +268,71 @@ describe("workspace e2e", () => {
     );
     assert.equal(JSON.parse(completed.stdout).requirement.status, "tech-review");
   });
+
+  it("runs P6 Skill install and status through the local manifest", async () => {
+    const { createApiApp, hashToken } = await import(
+      "../../apps/api/src/index"
+    );
+    const { createMemoryCliRuntime, runCli } = await import(
+      "../../apps/cli/src/index"
+    );
+    const app = createApiApp();
+    const bootstrapHash = await hashToken("skill-bootstrap", "pepper");
+    const env = {
+      BOOTSTRAP_TOKEN_HASHES: bootstrapHash,
+      TOKEN_HASH_SECRET: "pepper",
+    };
+    const runtime = createMemoryCliRuntime({
+      fetch: async (url, init) => {
+        const href = String(url);
+        if (href.startsWith("https://static.proud-flow.example/skills/")) {
+          const fileName = href.split("/").at(-1);
+          const bytes = await readFile(path.join(root, "skills/dist", fileName));
+          return new Response(bytes);
+        }
+        return app.fetch(
+          new Request(href, {
+            method: init?.method,
+            headers: init?.headers,
+            body: init?.body,
+          }),
+          env,
+        );
+      },
+      env: {
+        PROUD_FLOW_API_URL: "https://api.test",
+        CODEX_HOME: "/codex",
+      },
+    });
+
+    const init = await runCli(
+      [
+        "init",
+        "--env",
+        "dev",
+        "--bootstrap-token",
+        "skill-bootstrap",
+        "--machine-name",
+        "e2e-skills",
+      ],
+      runtime,
+    );
+    assert.equal(init.exitCode, 0);
+
+    const installed = await runCli(["skill", "install", "--json"], runtime);
+    assert.equal(installed.exitCode, 0);
+    assert.equal(JSON.parse(installed.stdout).installed.length, 3);
+    assert.match(
+      Buffer.from(
+        await runtime.readFile("/codex/skills/tech-design/SKILL.md"),
+      ).toString("utf8"),
+      /proud-flow get-task-context <requirementId> --stage tech_design/,
+    );
+
+    const status = await runCli(["skill", "status", "--json"], runtime);
+    assert.deepEqual(
+      JSON.parse(status.stdout).skills.map((skill) => skill.status),
+      ["installed", "installed", "installed"],
+    );
+  });
 });
