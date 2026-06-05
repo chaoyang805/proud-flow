@@ -4,7 +4,7 @@ import {
   type DispatchRequirementRequest,
   type DispatchRequirementResponse,
 } from "@proud-flow/api-contract";
-import type { ProudFlowHttpClient } from "./client.js";
+import type { ProudFlowHttpClient } from "./client";
 
 export class DispatchApiClient {
   constructor(private readonly http: ProudFlowHttpClient) {}

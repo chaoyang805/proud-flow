@@ -11,7 +11,7 @@ import {
   optionalSchema,
   stringSchema,
   type Schema,
-} from "./schema.js";
+} from "./schema";
 import {
   artifactListResponseSchema,
   artifactResponseSchema,
@@ -21,11 +21,11 @@ import {
   type ArtifactResponse,
   type CreateArtifactRequest,
   type UploadArtifactRequest,
-} from "./artifacts.js";
+} from "./artifacts";
 import {
   requirementResponseSchema,
   type RequirementResponse,
-} from "./requirements.js";
+} from "./requirements";
 
 export interface TaskContextResponse {
   requirement: RequirementResponse;

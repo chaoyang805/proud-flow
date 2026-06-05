@@ -4,9 +4,9 @@ import {
   type CompleteStageRequest,
   type StartStageRequest,
 } from "@proud-flow/api-contract";
-import { ApiError, jsonResponse } from "../../middleware/error.js";
-import type { InMemoryRequirementRepository } from "../requirements/repository.js";
-import { completeAiStage, startAiStage } from "./state-machine.js";
+import { ApiError, jsonResponse } from "../../middleware/error";
+import type { InMemoryRequirementRepository } from "../requirements/repository";
+import { completeAiStage, startAiStage } from "./state-machine";
 
 export async function handleWorkflowRoute(
   request: Request,

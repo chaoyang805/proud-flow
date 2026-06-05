@@ -5,10 +5,10 @@ import {
   type UploadArtifactRequest,
 } from "@proud-flow/api-contract";
 import type { Artifact } from "@proud-flow/domain";
-import { ApiError } from "../../middleware/error.js";
-import type { InMemoryRequirementRepository } from "../requirements/repository.js";
-import type { ArtifactStorage } from "./storage.js";
-import { archiveRequirement } from "../workflow/state-machine.js";
+import { ApiError } from "../../middleware/error";
+import type { InMemoryRequirementRepository } from "../requirements/repository";
+import type { ArtifactStorage } from "./storage";
+import { archiveRequirement } from "../workflow/state-machine";
 
 export class ArtifactsService {
   constructor(

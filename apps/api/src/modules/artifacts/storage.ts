@@ -1,4 +1,4 @@
-import type { R2BucketBinding } from "../../env.js";
+import type { R2BucketBinding } from "../../env";
 
 export class ArtifactStorage {
   constructor(private readonly bucket: R2BucketBinding | undefined) {}

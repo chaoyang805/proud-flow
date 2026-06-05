@@ -3,11 +3,11 @@ import {
   artifactResponseSchema,
   createArtifactRequestSchema,
   uploadArtifactRequestSchema,
-} from "./artifacts.js";
+} from "./artifacts";
 import {
   dispatchRequirementRequestSchema,
   dispatchRequirementResponseSchema,
-} from "./dispatch.js";
+} from "./dispatch";
 import {
   localBootstrapRequestSchema,
   localBootstrapResponseSchema,
@@ -15,18 +15,18 @@ import {
   rotateTokenResponseSchema,
   revokeTokenRequestSchema,
   skillManifestResponseSchema,
-} from "./local.js";
+} from "./local";
 import {
   createRequirementRequestSchema,
   requirementListResponseSchema,
   requirementResponseSchema,
   updateRequirementRequestSchema,
-} from "./requirements.js";
+} from "./requirements";
 import {
   approveReviewRequestSchema,
   reviewActionResponseSchema,
   rollbackReviewRequestSchema,
-} from "./reviews.js";
+} from "./reviews";
 import {
   addNoteRequestSchema,
   completeStageRequestSchema,
@@ -37,8 +37,8 @@ import {
   stageActionResponseSchema,
   startStageRequestSchema,
   taskContextResponseSchema,
-} from "./skills.js";
-import type { JsonSchema, Schema } from "./schema.js";
+} from "./skills";
+import type { JsonSchema, Schema } from "./schema";
 
 type Method = "get" | "post" | "patch" | "delete";
 

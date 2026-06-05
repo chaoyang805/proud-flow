@@ -1,4 +1,4 @@
-import type { RequirementStatus } from "./requirement.js";
+import type { RequirementStatus } from "./requirement";
 
 export const dispatchStages = [
   "tech_design",

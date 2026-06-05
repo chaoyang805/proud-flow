@@ -1,20 +1,20 @@
-export * from "./artifacts.js";
-export * from "./auth.js";
-export * from "./client.js";
-export * from "./dispatch.js";
-export * from "./errors.js";
-export * from "./local.js";
-export * from "./requirements.js";
-export * from "./reviews.js";
-export * from "./skills.js";
+export * from "./artifacts";
+export * from "./auth";
+export * from "./client";
+export * from "./dispatch";
+export * from "./errors";
+export * from "./local";
+export * from "./requirements";
+export * from "./reviews";
+export * from "./skills";
 
-import { ArtifactsApiClient } from "./artifacts.js";
-import { ProudFlowHttpClient, type ProudFlowClientOptions } from "./client.js";
-import { DispatchApiClient } from "./dispatch.js";
-import { LocalApiClient } from "./local.js";
-import { RequirementsApiClient } from "./requirements.js";
-import { ReviewsApiClient } from "./reviews.js";
-import { SkillsApiClient } from "./skills.js";
+import { ArtifactsApiClient } from "./artifacts";
+import { ProudFlowHttpClient, type ProudFlowClientOptions } from "./client";
+import { DispatchApiClient } from "./dispatch";
+import { LocalApiClient } from "./local";
+import { RequirementsApiClient } from "./requirements";
+import { ReviewsApiClient } from "./reviews";
+import { SkillsApiClient } from "./skills";
 
 export interface ProudFlowApiClient {
   requirements: RequirementsApiClient;

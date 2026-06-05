@@ -7,11 +7,11 @@ import {
   objectSchema,
   stringSchema,
   type Schema,
-} from "./schema.js";
+} from "./schema";
 import {
   requirementResponseSchema,
   type RequirementResponse,
-} from "./requirements.js";
+} from "./requirements";
 
 export interface ApproveReviewRequest {
   note: string;

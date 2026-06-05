@@ -1,8 +1,8 @@
-import type { ApiEnv } from "../../env.js";
-import { requireSkillToken } from "../../middleware/auth.js";
-import { jsonResponse } from "../../middleware/error.js";
-import type { InMemoryRequirementRepository } from "../requirements/repository.js";
-import type { SkillsApiService } from "./service.js";
+import type { ApiEnv } from "../../env";
+import { requireSkillToken } from "../../middleware/auth";
+import { jsonResponse } from "../../middleware/error";
+import type { InMemoryRequirementRepository } from "../requirements/repository";
+import type { SkillsApiService } from "./service";
 
 export async function handleSkillsRoute(
   request: Request,

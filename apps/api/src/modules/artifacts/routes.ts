@@ -1,5 +1,5 @@
-import { jsonResponse } from "../../middleware/error.js";
-import type { ArtifactsService } from "./service.js";
+import { jsonResponse } from "../../middleware/error";
+import type { ArtifactsService } from "./service";
 
 export async function handleArtifactsRoute(
   request: Request,

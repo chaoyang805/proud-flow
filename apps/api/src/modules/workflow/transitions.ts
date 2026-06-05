@@ -4,4 +4,4 @@ export {
   completeAiStage,
   rollbackRequirement,
   startAiStage,
-} from "./state-machine.js";
+} from "./state-machine";

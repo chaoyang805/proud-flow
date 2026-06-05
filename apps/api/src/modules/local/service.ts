@@ -6,10 +6,10 @@ import {
   type RotateTokenResponse,
 } from "@proud-flow/api-contract";
 import type { TokenType } from "@proud-flow/domain";
-import type { ApiEnv } from "../../env.js";
-import { requireBootstrapToken } from "../../middleware/auth.js";
-import { hashToken } from "../auth/token-service.js";
-import type { InMemoryRequirementRepository } from "../requirements/repository.js";
+import type { ApiEnv } from "../../env";
+import { requireBootstrapToken } from "../../middleware/auth";
+import { hashToken } from "../auth/token-service";
+import type { InMemoryRequirementRepository } from "../requirements/repository";
 
 type ManagedTokenType = Extract<TokenType, "skill" | "dispatcher" | "local">;
 

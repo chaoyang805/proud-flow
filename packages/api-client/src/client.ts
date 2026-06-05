@@ -1,5 +1,5 @@
 import type { Schema } from "@proud-flow/api-contract";
-import { parseErrorResponse } from "./errors.js";
+import { parseErrorResponse } from "./errors";
 
 export interface ProudFlowClientOptions {
   baseUrl: string;

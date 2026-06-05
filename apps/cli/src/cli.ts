@@ -4,8 +4,8 @@ import {
   ProudFlowApiError,
 } from "@proud-flow/api-client";
 import type { ArtifactType, DispatchStage } from "@proud-flow/domain";
-import { getBackendUrl, isEnvironment } from "./environment.js";
-import type { CliConfig, CliRuntime, StoredTokenType } from "./runtime.js";
+import { getBackendUrl, isEnvironment } from "./environment";
+import type { CliConfig, CliRuntime, StoredTokenType } from "./runtime";
 
 export interface CliResult {
   exitCode: number;

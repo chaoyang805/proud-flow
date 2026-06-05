@@ -10,10 +10,10 @@ import {
   getRequiredArtifactsForDispatchStage,
   type RequirementStatus,
 } from "@proud-flow/domain";
-import { ApiError } from "../../middleware/error.js";
-import type { ArtifactsService } from "../artifacts/service.js";
-import type { InMemoryRequirementRepository } from "../requirements/repository.js";
-import { completeAiStage, startAiStage } from "../workflow/state-machine.js";
+import { ApiError } from "../../middleware/error";
+import type { ArtifactsService } from "../artifacts/service";
+import type { InMemoryRequirementRepository } from "../requirements/repository";
+import { completeAiStage, startAiStage } from "../workflow/state-machine";
 
 export class SkillsApiService {
   constructor(

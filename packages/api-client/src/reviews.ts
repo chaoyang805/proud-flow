@@ -6,7 +6,7 @@ import {
   type ReviewActionResponse,
   type RollbackReviewRequest,
 } from "@proud-flow/api-contract";
-import type { ProudFlowHttpClient } from "./client.js";
+import type { ProudFlowHttpClient } from "./client";
 
 export class ReviewsApiClient {
   constructor(private readonly http: ProudFlowHttpClient) {}

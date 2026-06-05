@@ -12,8 +12,8 @@ import {
   stringSchema,
   unionSchema,
   type Schema,
-} from "./schema.js";
-import { requirementIdSchema } from "./requirements.js";
+} from "./schema";
+import { requirementIdSchema } from "./requirements";
 
 export const eventIdSchema = stringSchema({ pattern: /^evt_[A-Za-z0-9_-]+$/ });
 

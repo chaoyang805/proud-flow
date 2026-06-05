@@ -12,8 +12,8 @@ import {
   stringSchema,
   unionSchema,
   type Schema,
-} from "./schema.js";
-import { requirementIdSchema } from "./requirements.js";
+} from "./schema";
+import { requirementIdSchema } from "./requirements";
 
 export interface DispatchRequirementRequest {
   stage: DispatchStage;

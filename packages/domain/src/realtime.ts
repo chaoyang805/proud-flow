@@ -1,5 +1,5 @@
-import type { DispatchStage } from "./dispatch.js";
-import type { RequirementStatus } from "./requirement.js";
+import type { DispatchStage } from "./dispatch";
+import type { RequirementStatus } from "./requirement";
 
 export interface RequirementUpdatedEvent {
   type: "requirement.updated";

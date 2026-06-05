@@ -1,5 +1,5 @@
-import { jsonResponse } from "../../middleware/error.js";
-import type { RequirementsService } from "./service.js";
+import { jsonResponse } from "../../middleware/error";
+import type { RequirementsService } from "./service";
 
 export async function handleRequirementsRoute(
   request: Request,

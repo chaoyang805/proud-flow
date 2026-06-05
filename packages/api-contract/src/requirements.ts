@@ -13,7 +13,7 @@ import {
   optionalSchema,
   stringSchema,
   type Schema,
-} from "./schema.js";
+} from "./schema";
 
 export interface CreateRequirementRequest {
   title: string;

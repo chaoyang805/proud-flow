@@ -1,6 +1,6 @@
-import type { ApiEnv } from "../../env.js";
-import { requireDispatcherToken } from "../../middleware/auth.js";
-import type { InMemoryRequirementRepository } from "../requirements/repository.js";
+import type { ApiEnv } from "../../env";
+import { requireDispatcherToken } from "../../middleware/auth";
+import type { InMemoryRequirementRepository } from "../requirements/repository";
 
 type WorkerWebSocket = {
   accept(): void;

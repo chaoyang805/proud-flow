@@ -3,12 +3,12 @@ import {
   type RollbackReviewRequest,
 } from "@proud-flow/api-contract";
 import type { Requirement } from "@proud-flow/domain";
-import { ApiError } from "../../middleware/error.js";
-import type { InMemoryRequirementRepository } from "../requirements/repository.js";
+import { ApiError } from "../../middleware/error";
+import type { InMemoryRequirementRepository } from "../requirements/repository";
 import {
   approveReview,
   rollbackRequirement,
-} from "../workflow/state-machine.js";
+} from "../workflow/state-machine";
 
 export class ReviewsService {
   constructor(private readonly repository: InMemoryRequirementRepository) {}

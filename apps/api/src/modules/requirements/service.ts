@@ -5,8 +5,8 @@ import {
   type UpdateRequirementRequest,
 } from "@proud-flow/api-contract";
 import type { Requirement } from "@proud-flow/domain";
-import { ApiError } from "../../middleware/error.js";
-import type { InMemoryRequirementRepository } from "./repository.js";
+import { ApiError } from "../../middleware/error";
+import type { InMemoryRequirementRepository } from "./repository";
 
 export class RequirementsService {
   constructor(private readonly repository: InMemoryRequirementRepository) {}

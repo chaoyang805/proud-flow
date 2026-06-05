@@ -12,7 +12,7 @@ import {
   type RevokeTokenRequest,
   type SkillManifestResponse,
 } from "@proud-flow/api-contract";
-import type { ProudFlowHttpClient } from "./client.js";
+import type { ProudFlowHttpClient } from "./client";
 
 export class LocalApiClient {
   constructor(private readonly http: ProudFlowHttpClient) {}

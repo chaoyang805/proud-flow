@@ -5,7 +5,7 @@ import {
   objectSchema,
   stringSchema,
   type Schema,
-} from "./schema.js";
+} from "./schema";
 
 export interface LocalBootstrapRequest {
   bootstrapToken: string;

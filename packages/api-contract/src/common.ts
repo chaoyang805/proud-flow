@@ -6,7 +6,7 @@ import {
   optionalSchema,
   stringSchema,
   type Schema,
-} from "./schema.js";
+} from "./schema";
 
 export interface ErrorDetailResponse {
   field?: string;

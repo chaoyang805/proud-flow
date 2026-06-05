@@ -1,6 +1,6 @@
-import type { ArtifactType } from "./artifact.js";
-import { dispatchStageToActiveStatus, type DispatchStage } from "./dispatch.js";
-import type { RequirementStatus } from "./requirement.js";
+import type { ArtifactType } from "./artifact";
+import { dispatchStageToActiveStatus, type DispatchStage } from "./dispatch";
+import type { RequirementStatus } from "./requirement";
 
 export const workflowStatuses: RequirementStatus[] = [
   "planning",

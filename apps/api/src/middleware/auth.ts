@@ -1,10 +1,10 @@
-import { parseHashList, type ApiEnv } from "../env.js";
-import { ApiError } from "./error.js";
+import { parseHashList, type ApiEnv } from "../env";
+import { ApiError } from "./error";
 import {
   readBearerToken,
   verifyTokenHash,
-} from "../modules/auth/token-service.js";
-import type { InMemoryRequirementRepository } from "../modules/requirements/repository.js";
+} from "../modules/auth/token-service";
+import type { InMemoryRequirementRepository } from "../modules/requirements/repository";
 
 export async function requireUserToken(
   request: Request,

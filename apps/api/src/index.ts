@@ -1,25 +1,25 @@
-import type { ApiEnv } from "./env.js";
-import { requireUserToken } from "./middleware/auth.js";
+import type { ApiEnv } from "./env";
+import { requireUserToken } from "./middleware/auth";
 import {
   ApiError,
   errorResponse,
   jsonResponse,
   toApiError,
-} from "./middleware/error.js";
-import { ArtifactStorage } from "./modules/artifacts/storage.js";
-import { ArtifactsService } from "./modules/artifacts/service.js";
-import { handleArtifactsRoute } from "./modules/artifacts/routes.js";
-import { handleDispatchRoute } from "./modules/dispatch/routes.js";
-import { LocalApiService } from "./modules/local/service.js";
-import { handleLocalRoute } from "./modules/local/routes.js";
-import { InMemoryRequirementRepository } from "./modules/requirements/repository.js";
-import { RequirementsService } from "./modules/requirements/service.js";
-import { handleRequirementsRoute } from "./modules/requirements/routes.js";
-import { ReviewsService } from "./modules/reviews/service.js";
-import { handleReviewsRoute } from "./modules/reviews/routes.js";
-import { SkillsApiService } from "./modules/skills/service.js";
-import { handleSkillsRoute } from "./modules/skills/routes.js";
-import { handleWorkflowRoute } from "./modules/workflow/routes.js";
+} from "./middleware/error";
+import { ArtifactStorage } from "./modules/artifacts/storage";
+import { ArtifactsService } from "./modules/artifacts/service";
+import { handleArtifactsRoute } from "./modules/artifacts/routes";
+import { handleDispatchRoute } from "./modules/dispatch/routes";
+import { LocalApiService } from "./modules/local/service";
+import { handleLocalRoute } from "./modules/local/routes";
+import { InMemoryRequirementRepository } from "./modules/requirements/repository";
+import { RequirementsService } from "./modules/requirements/service";
+import { handleRequirementsRoute } from "./modules/requirements/routes";
+import { ReviewsService } from "./modules/reviews/service";
+import { handleReviewsRoute } from "./modules/reviews/routes";
+import { SkillsApiService } from "./modules/skills/service";
+import { handleSkillsRoute } from "./modules/skills/routes";
+import { handleWorkflowRoute } from "./modules/workflow/routes";
 
 export interface ApiAppOptions {
   repository?: InMemoryRequirementRepository;
@@ -77,7 +77,7 @@ export default {
   fetch: defaultApp.fetch,
 };
 
-export { hashToken, verifyTokenHash } from "./modules/auth/token-service.js";
-export { InMemoryRequirementRepository } from "./modules/requirements/repository.js";
-export { schemaSql } from "./db/schema.js";
+export { hashToken, verifyTokenHash } from "./modules/auth/token-service";
+export { InMemoryRequirementRepository } from "./modules/requirements/repository";
+export { schemaSql } from "./db/schema";
 export { jsonResponse };

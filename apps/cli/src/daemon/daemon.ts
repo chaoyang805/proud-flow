@@ -1,7 +1,7 @@
 import { dispatchMessageSchema } from "@proud-flow/api-contract";
 import type { DispatchAckedMessage, DispatchMessage } from "@proud-flow/domain";
-import { createStageCommand } from "./stage-router.js";
-import type { CodexRunner } from "./codex-runner.js";
+import { createStageCommand } from "./stage-router";
+import type { CodexRunner } from "./codex-runner";
 
 export interface ProudFlowDaemon {
   receive(message: unknown): Promise<void>;

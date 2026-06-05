@@ -11,8 +11,8 @@ import {
   optionalSchema,
   stringSchema,
   type Schema,
-} from "./schema.js";
-import { requirementIdSchema } from "./requirements.js";
+} from "./schema";
+import { requirementIdSchema } from "./requirements";
 
 export interface ArtifactResponse extends Artifact {}
 

@@ -8,7 +8,7 @@ import {
   type CreateArtifactRequest,
   type UploadArtifactRequest,
 } from "@proud-flow/api-contract";
-import type { ProudFlowHttpClient } from "./client.js";
+import type { ProudFlowHttpClient } from "./client";
 
 export class ArtifactsApiClient {
   constructor(private readonly http: ProudFlowHttpClient) {}

@@ -1,9 +1,9 @@
-import type { ApiEnv } from "../../env.js";
-import { requireLocalToken } from "../../middleware/auth.js";
-import { jsonResponse } from "../../middleware/error.js";
-import type { InMemoryRequirementRepository } from "../requirements/repository.js";
-import { createSkillManifest } from "./skill-manifest.js";
-import { LocalApiService } from "./service.js";
+import type { ApiEnv } from "../../env";
+import { requireLocalToken } from "../../middleware/auth";
+import { jsonResponse } from "../../middleware/error";
+import type { InMemoryRequirementRepository } from "../requirements/repository";
+import { createSkillManifest } from "./skill-manifest";
+import { LocalApiService } from "./service";
 
 export async function handleLocalRoute(
   request: Request,

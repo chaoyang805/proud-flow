@@ -9,7 +9,7 @@ import {
   type Requirement,
   type RequirementStatus,
 } from "@proud-flow/domain";
-import { ApiError } from "../../middleware/error.js";
+import { ApiError } from "../../middleware/error";
 
 export function startAiStage(
   requirement: Requirement,
