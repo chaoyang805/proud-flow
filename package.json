@@ -15,12 +15,14 @@
     "test": "pnpm build && node scripts/turbo-run.mjs test",
     "test:coverage": "pnpm build && node scripts/turbo-run.mjs test:coverage",
     "test:e2e": "pnpm skills:package && pnpm exec vitest run -c vitest.e2e.config.ts --passWithNoTests",
+    "test:browser": "pnpm exec playwright test",
     "skills:package": "node scripts/build-skill-packages.mjs",
     "format": "node scripts/format.mjs --write",
     "format:check": "node scripts/format.mjs --check",
     "openapi:generate": "pnpm --filter @proud-flow/api-contract openapi:generate"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "@types/node": "^25.9.1",
     "@vitest/coverage-v8": "^4.1.8",
     "tsc-alias": "^1.8.17",
