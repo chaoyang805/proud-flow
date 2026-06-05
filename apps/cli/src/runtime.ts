@@ -1,4 +1,7 @@
 import process from "node:process";
+import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
+import { dirname, join } from "node:path";
+import { homedir } from "node:os";
 import type { TokenType } from "@proud-flow/domain";
 
 export interface CliConfig {
@@ -85,4 +88,105 @@ export function createMemoryCliRuntime(
       );
     },
   };
+}
+
+export function createNodeCliRuntime(
+  options: {
+    fetch?: typeof fetch;
+    env?: Record<string, string | undefined>;
+    cwd?: string;
+    configDir?: string;
+  } = {},
+): CliRuntime {
+  const env = options.env ?? process.env;
+  const configDir =
+    options.configDir ??
+    env.PROUD_FLOW_CONFIG_DIR ??
+    join(homedir(), ".proud-flow");
+  const configPath = join(configDir, "config.json");
+  const tokenPath = join(configDir, "tokens.json");
+
+  return {
+    fetch: options.fetch ?? fetch,
+    env,
+    cwd: options.cwd ?? process.cwd(),
+    store: {
+      async readConfig() {
+        return readJsonFile<CliConfig>(configPath);
+      },
+      async writeConfig(config) {
+        await writeJsonFile(configPath, config);
+      },
+      async clearConfig() {
+        await rm(configPath, { force: true });
+      },
+    },
+    keychain: {
+      async getToken(type) {
+        const tokens = (await readJsonFile<Partial<Record<StoredTokenType, string>>>(
+          tokenPath,
+        )) ?? {};
+        return tokens[type];
+      },
+      async setToken(type, token) {
+        const tokens = (await readJsonFile<Partial<Record<StoredTokenType, string>>>(
+          tokenPath,
+        )) ?? {};
+        await writeJsonFile(tokenPath, { ...tokens, [type]: token });
+      },
+      async deleteToken(type) {
+        const tokens = (await readJsonFile<Partial<Record<StoredTokenType, string>>>(
+          tokenPath,
+        )) ?? {};
+        delete tokens[type];
+        await writeJsonFile(tokenPath, tokens);
+      },
+    },
+    async readFile(path) {
+      return readFile(path);
+    },
+    async writeFile(path, content) {
+      await mkdir(dirname(path), { recursive: true });
+      await writeFile(path, content);
+    },
+    async listFiles(pathPrefix) {
+      return listFilesRecursive(pathPrefix);
+    },
+  };
+}
+
+async function readJsonFile<T>(path: string): Promise<T | undefined> {
+  try {
+    return JSON.parse(await readFile(path, "utf8")) as T;
+  } catch (error) {
+    if (isNodeError(error) && error.code === "ENOENT") {
+      return undefined;
+    }
+    throw error;
+  }
+}
+
+async function writeJsonFile(path: string, value: unknown): Promise<void> {
+  await mkdir(dirname(path), { recursive: true });
+  await writeFile(path, `${JSON.stringify(value, null, 2)}\n`, {
+    mode: 0o600,
+  });
+}
+
+async function listFilesRecursive(pathPrefix: string): Promise<string[]> {
+  const entries = await readdir(pathPrefix, { withFileTypes: true });
+  const files: string[] = [];
+  for (const entry of entries) {
+    const entryPath = join(pathPrefix, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...(await listFilesRecursive(entryPath)));
+    } else if (entry.isFile()) {
+      files.push(entryPath);
+    }
+  }
+  return files;
+}
+
+function isNodeError(error: unknown): error is NodeJS.ErrnoException {
+  return error instanceof Error && "code" in error;
 }

@@ -13,6 +13,8 @@ export interface R2BucketBinding {
 export interface ApiEnv {
   DB?: D1DatabaseBinding;
   ARTIFACT_BUCKET?: R2BucketBinding;
+  ENVIRONMENT?: string;
+  SKILL_MANIFEST_BASE_URL?: string;
   USER_TOKEN_HASHES?: string;
   SKILL_TOKEN_HASHES?: string;
   DISPATCHER_TOKEN_HASHES?: string;

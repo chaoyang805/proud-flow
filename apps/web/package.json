@@ -7,12 +7,16 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "preview:cloudflare": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "deploy:dev": "NEXT_PUBLIC_PROUD_FLOW_API_URL=https://api-dev.proud-flow.example CLOUDFLARE_ENV=dev opennextjs-cloudflare build && CLOUDFLARE_ENV=dev opennextjs-cloudflare deploy",
+    "deploy:prod": "NEXT_PUBLIC_PROUD_FLOW_API_URL=https://api.proud-flow.example CLOUDFLARE_ENV=production opennextjs-cloudflare build && CLOUDFLARE_ENV=production opennextjs-cloudflare deploy",
     "typecheck": "tsc -p tsconfig.test.json --noEmit",
     "lint": "node ../../scripts/lint-workspace.mjs",
     "test": "node ../../scripts/run-workspace-tests.mjs",
     "test:coverage": "node ../../scripts/run-workspace-coverage.mjs"
   },
   "devDependencies": {
+    "@opennextjs/cloudflare": "^1.19.11",
     "@proud-flow/config": "workspace:*",
     "@tailwindcss/postcss": "^4.3.0",
     "@testing-library/react": "^16.3.2",

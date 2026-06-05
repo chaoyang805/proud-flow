@@ -1,5 +1,5 @@
 export { getBackendUrl, isEnvironment } from "./environment";
-export { createMemoryCliRuntime } from "./runtime";
+export { createMemoryCliRuntime, createNodeCliRuntime } from "./runtime";
 export type {
   CliConfig,
   CliConfigStore,

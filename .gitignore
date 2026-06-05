@@ -3,6 +3,8 @@ dist/
 coverage/
 .turbo/
 .next/
+.open-next/
+.wrangler/
 playwright-report/
 test-results/
 .DS_Store

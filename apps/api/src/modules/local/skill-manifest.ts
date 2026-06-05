@@ -31,6 +31,13 @@ const skillManifest: SkillManifestResponse = {
   ],
 };
 
-export function createSkillManifest(): SkillManifestResponse {
-  return skillManifest;
+export function createSkillManifest(baseUrl = "https://static.proud-flow.example/skills"): SkillManifestResponse {
+  const normalizedBaseUrl = baseUrl.replace(/\/$/, "");
+  return {
+    ...skillManifest,
+    skills: skillManifest.skills.map((skill) => ({
+      ...skill,
+      downloadUrl: `${normalizedBaseUrl}/${skill.name}-${skill.version}.skillpkg.json`,
+    })),
+  };
 }

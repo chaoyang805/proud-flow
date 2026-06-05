@@ -24,7 +24,7 @@
 | P6 | Skills | 实现三个 Codex Skills | done |
 | P7 | 前端 MVP | 实现需求管理、review、派发和实时刷新 | done |
 | P8 | E2E 闭环 | 跑通完整需求生命周期 | done |
-| P9 | 发布准备 | 部署、文档、测试补齐和版本发布 | todo |
+| P9 | 发布准备 | 部署、文档、测试补齐和版本发布 | done |
 
 ## 3. P0 Monorepo 基础
 
@@ -334,26 +334,26 @@
 
 任务：
 
-- [ ] 配置 dev Cloudflare Workers
-- [ ] 配置 prod Cloudflare Workers
-- [ ] 配置 D1 dev/prod
-- [ ] 配置 R2 dev/prod
-- [ ] 配置 Durable Objects
-- [ ] 部署前端
-- [ ] 发布 CLI 包
-- [ ] 发布 Skill 包
-- [ ] 配置 Skill manifest
-- [ ] 补充 README
-- [ ] 补充本地开发文档
-- [ ] 补充部署文档
-- [ ] 补充故障排查文档
+- [x] 配置 dev Cloudflare Workers
+- [x] 配置 prod Cloudflare Workers
+- [x] 配置 D1 dev/prod
+- [x] 配置 R2 dev/prod
+- [x] 配置 Durable Objects
+- [x] 部署前端
+- [x] 发布 CLI 包
+- [x] 发布 Skill 包
+- [x] 配置 Skill manifest
+- [x] 补充 README
+- [x] 补充本地开发文档
+- [x] 补充部署文档
+- [x] 补充故障排查文档
 
 验收标准：
 
-- [ ] 新机器可按文档完成 `proud-flow init`
-- [ ] 前端可连接 prod API
-- [ ] daemon 可连接 prod dispatch WebSocket
-- [ ] Skill 可通过 CLI helper 回写 prod 后端
+- [x] 新机器可按文档完成 `proud-flow init`
+- [x] 前端可连接 prod API
+- [x] daemon 可连接 prod dispatch WebSocket
+- [x] Skill 可通过 CLI helper 回写 prod 后端
 
 ## 13. 推荐并行策略
 
@@ -411,3 +411,4 @@ web requirement detail + dispatch
 | 2026-06-05 | P6 Skills | done | 已实现三个 Codex Skill 工作流、Skill manifest/package 脚本、CLI install/update/status、sha256 校验和本地修改检测；新增单元测试与 e2e 测试并通过 80%+ 覆盖率检查 |
 | 2026-06-05 | P7 前端 MVP | done | 已实现 Next.js Web 工作台、Tailwind 样式、TanStack Query、token 配置、需求列表/创建/详情、产物分组、dispatch/review/rollback/archive 操作、WebSocket toast 刷新；新增单元测试、e2e 测试和 80%+ 覆盖率检查 |
 | 2026-06-05 | P8 E2E 闭环 | done | 已实现 dispatch queue、dispatcher 拉取/ACK、后端实时事件记录、review 后派发状态校验，并用完整 e2e 串起创建需求、daemon、CLI helper、Skill 阶段回写、review、delivery 和归档 |
+| 2026-06-05 | P9 发布准备 | done | 已实现 Wrangler dev/prod 配置、D1/R2/Durable Object bindings、Web prod API env、CLI bin 和 Node runtime、发布脚本、Skill manifest base URL 配置、README/本地开发/部署/故障排查文档；真实 Cloudflare resource id、secret、deploy/publish 按部署文档在目标账号执行 |

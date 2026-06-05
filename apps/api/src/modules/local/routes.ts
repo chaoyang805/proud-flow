@@ -28,7 +28,7 @@ export async function handleLocalRoute(
   }
 
   if (pathname === "/api/local/skills/manifest" && request.method === "GET") {
-    return jsonResponse(createSkillManifest());
+    return jsonResponse(createSkillManifest(env.SKILL_MANIFEST_BASE_URL));
   }
 
   return undefined;

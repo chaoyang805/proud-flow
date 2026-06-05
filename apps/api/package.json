@@ -12,6 +12,11 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json && tsc-alias -p tsconfig.json --resolve-full-paths --resolve-full-extension .js",
+    "deploy:dev": "pnpm build && pnpm exec wrangler deploy --config wrangler.jsonc --env dev",
+    "deploy:prod": "pnpm build && pnpm exec wrangler deploy --config wrangler.jsonc --env production",
+    "db:migrate:dev": "pnpm exec wrangler d1 migrations apply proud-flow-dev --config wrangler.jsonc --env dev --remote",
+    "db:migrate:prod": "pnpm exec wrangler d1 migrations apply proud-flow-prod --config wrangler.jsonc --env production --remote",
+    "wrangler:check": "pnpm exec wrangler deploy --config wrangler.jsonc --env dev --dry-run",
     "typecheck": "tsc -p tsconfig.test.json --noEmit",
     "lint": "node ../../scripts/lint-workspace.mjs",
     "test": "node ../../scripts/run-workspace-tests.mjs",

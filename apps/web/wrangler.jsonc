@@ -1,0 +1,46 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "main": ".open-next/worker.js",
+  "name": "proud-flow-web",
+  "compatibility_date": "2026-06-05",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "proud-flow-web"
+    }
+  ],
+  "vars": {
+    "NEXT_PUBLIC_PROUD_FLOW_API_URL": "https://api.proud-flow.example"
+  },
+  "env": {
+    "dev": {
+      "name": "proud-flow-web-dev",
+      "vars": {
+        "NEXT_PUBLIC_PROUD_FLOW_API_URL": "https://api-dev.proud-flow.example"
+      },
+      "services": [
+        {
+          "binding": "WORKER_SELF_REFERENCE",
+          "service": "proud-flow-web-dev"
+        }
+      ]
+    },
+    "production": {
+      "name": "proud-flow-web",
+      "vars": {
+        "NEXT_PUBLIC_PROUD_FLOW_API_URL": "https://api.proud-flow.example"
+      },
+      "services": [
+        {
+          "binding": "WORKER_SELF_REFERENCE",
+          "service": "proud-flow-web"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,112 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "proud-flow-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-06-05",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  },
+  "vars": {
+    "ENVIRONMENT": "dev",
+    "SKILL_MANIFEST_BASE_URL": "https://static-dev.proud-flow.example/skills"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "proud-flow-dev",
+      "database_id": "00000000-0000-0000-0000-000000000000"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "ARTIFACT_BUCKET",
+      "bucket_name": "proud-flow-dev-artifacts"
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "DISPATCH_DO",
+        "class_name": "DispatchDurableObject"
+      },
+      {
+        "name": "REALTIME_DO",
+        "class_name": "RealtimeDurableObject"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_classes": ["DispatchDurableObject", "RealtimeDurableObject"]
+    }
+  ],
+  "env": {
+    "dev": {
+      "name": "proud-flow-api-dev",
+      "vars": {
+        "ENVIRONMENT": "dev",
+        "SKILL_MANIFEST_BASE_URL": "https://static-dev.proud-flow.example/skills"
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "proud-flow-dev",
+          "database_id": "00000000-0000-0000-0000-000000000000"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "ARTIFACT_BUCKET",
+          "bucket_name": "proud-flow-dev-artifacts"
+        }
+      ],
+      "durable_objects": {
+        "bindings": [
+          {
+            "name": "DISPATCH_DO",
+            "class_name": "DispatchDurableObject"
+          },
+          {
+            "name": "REALTIME_DO",
+            "class_name": "RealtimeDurableObject"
+          }
+        ]
+      }
+    },
+    "production": {
+      "name": "proud-flow-api-prod",
+      "vars": {
+        "ENVIRONMENT": "prod",
+        "SKILL_MANIFEST_BASE_URL": "https://static.proud-flow.example/skills"
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "proud-flow-prod",
+          "database_id": "00000000-0000-0000-0000-000000000000"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "ARTIFACT_BUCKET",
+          "bucket_name": "proud-flow-prod-artifacts"
+        }
+      ],
+      "durable_objects": {
+        "bindings": [
+          {
+            "name": "DISPATCH_DO",
+            "class_name": "DispatchDurableObject"
+          },
+          {
+            "name": "REALTIME_DO",
+            "class_name": "RealtimeDurableObject"
+          }
+        ]
+      }
+    }
+  }
+}

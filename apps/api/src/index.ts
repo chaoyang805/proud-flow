@@ -79,6 +79,22 @@ export default {
   fetch: defaultApp.fetch,
 };
 
+export class DispatchDurableObject {
+  fetch(): Response {
+    return new Response("Dispatch Durable Object is configured for deployment", {
+      status: 501,
+    });
+  }
+}
+
+export class RealtimeDurableObject {
+  fetch(): Response {
+    return new Response("Realtime Durable Object is configured for deployment", {
+      status: 501,
+    });
+  }
+}
+
 export { hashToken, verifyTokenHash } from "./modules/auth/token-service";
 export { InMemoryRequirementRepository } from "./modules/requirements/repository";
 export { schemaSql } from "./db/schema";

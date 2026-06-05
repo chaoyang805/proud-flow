@@ -17,6 +17,15 @@
     "test:e2e": "pnpm skills:package && pnpm exec vitest run -c vitest.e2e.config.ts --passWithNoTests",
     "test:browser": "pnpm exec playwright test",
     "skills:package": "node scripts/build-skill-packages.mjs",
+    "release:check": "node scripts/check-release-readiness.mjs",
+    "deploy:api:dev": "pnpm --filter @proud-flow/api deploy:dev",
+    "deploy:api:prod": "pnpm --filter @proud-flow/api deploy:prod",
+    "deploy:web:dev": "pnpm --filter @proud-flow/web deploy:dev",
+    "deploy:web:prod": "pnpm --filter @proud-flow/web deploy:prod",
+    "db:migrate:dev": "pnpm --filter @proud-flow/api db:migrate:dev",
+    "db:migrate:prod": "pnpm --filter @proud-flow/api db:migrate:prod",
+    "publish:cli": "pnpm --filter @proud-flow/cli publish:package",
+    "publish:skills": "pnpm skills:package",
     "format": "node scripts/format.mjs --write",
     "format:check": "node scripts/format.mjs --check",
     "openapi:generate": "pnpm --filter @proud-flow/api-contract openapi:generate"
@@ -27,6 +36,7 @@
     "@vitest/coverage-v8": "^4.1.8",
     "tsc-alias": "^1.8.17",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.8"
+    "vitest": "^4.1.8",
+    "wrangler": "^4.98.0"
   }
 }
