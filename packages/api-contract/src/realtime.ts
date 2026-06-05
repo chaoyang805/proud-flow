@@ -6,6 +6,7 @@ import {
   type RequirementStatus,
 } from "@proud-flow/domain";
 import {
+  arraySchema,
   booleanSchema,
   enumSchema,
   objectSchema,
@@ -53,3 +54,12 @@ export const realtimeEventSchema: Schema<RealtimeEvent> =
     realtimeDispatchAckedEventSchema as Schema<RealtimeEvent>,
     aiStageFailedEventSchema as Schema<RealtimeEvent>,
   ]);
+
+export interface RealtimeEventListResponse {
+  items: RealtimeEvent[];
+}
+
+export const realtimeEventListResponseSchema: Schema<RealtimeEventListResponse> =
+  objectSchema({
+    items: arraySchema(realtimeEventSchema),
+  });

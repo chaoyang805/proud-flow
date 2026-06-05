@@ -8,6 +8,7 @@ const paths = [
   "/api/requirements/{id}/dispatch",
   "/api/requirements/{id}/artifacts",
   "/api/artifacts/upload",
+  "/api/realtime/events",
   "/api/skills/requirements/{id}",
   "/api/skills/requirements/{id}/task-context",
   "/api/skills/requirements/{id}/status/start",

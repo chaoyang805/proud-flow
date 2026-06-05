@@ -130,6 +130,6 @@ export function ensureRequiredArtifacts(
 
 function getDispatchSourceStatus(stage: DispatchStage): RequirementStatus {
   if (stage === "tech_design") return "planning";
-  if (stage === "case_rundown") return "tech-review";
-  return "case-review";
+  if (stage === "case_rundown") return "case-rundown";
+  return "developing";
 }

@@ -89,10 +89,14 @@ describe("workflow and review API", () => {
     );
     assert.equal(approved.requirement.status, "case-rundown");
 
-    await request(app, "/api/requirements/REQ-000001/workflow/complete-stage", {
-      method: "POST",
-      body: { stage: "case_rundown" },
-    });
+    const invalidComplete = await json(
+      await request(app, "/api/requirements/REQ-000001/workflow/complete-stage", {
+        method: "POST",
+        body: { stage: "case_rundown" },
+      }),
+    );
+    assert.equal(invalidComplete.error.code, "MISSING_REQUIRED_ARTIFACT");
+
     const badRollback = await json(
       await request(app, "/api/requirements/REQ-000001/reviews/rollback", {
         method: "POST",

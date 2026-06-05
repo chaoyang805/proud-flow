@@ -23,7 +23,7 @@
 | P5 | Daemon 派发 | 实现 WebSocket 连接、ACK、Codex Runner | done |
 | P6 | Skills | 实现三个 Codex Skills | done |
 | P7 | 前端 MVP | 实现需求管理、review、派发和实时刷新 | done |
-| P8 | E2E 闭环 | 跑通完整需求生命周期 | todo |
+| P8 | E2E 闭环 | 跑通完整需求生命周期 | done |
 | P9 | 发布准备 | 部署、文档、测试补齐和版本发布 | todo |
 
 ## 3. P0 Monorepo 基础
@@ -308,27 +308,27 @@
 
 最小闭环：
 
-- [ ] 创建需求
-- [ ] 派发技术方案设计
-- [ ] daemon 收到 `dispatch.requested`
-- [ ] daemon 启动 `/tech-design REQ-xxx`
-- [ ] Skill 运行 `get-task-context`
-- [ ] Skill 运行 `start-stage`
-- [ ] Skill 登记技术方案产物
-- [ ] Skill 运行 `complete-stage`
-- [ ] 后端进入 `tech-review`
-- [ ] 前端收到 WebSocket 事件并刷新
-- [ ] 用户 review 通过并派发用例设计
-- [ ] 用例设计进入 `case-review`
-- [ ] 用户 review 通过并派发开发
-- [ ] 开发进入 `delivery`
-- [ ] 用户验收归档
+- [x] 创建需求
+- [x] 派发技术方案设计
+- [x] daemon 收到 `dispatch.requested`
+- [x] daemon 启动 `/tech-design REQ-xxx`
+- [x] Skill 运行 `get-task-context`
+- [x] Skill 运行 `start-stage`
+- [x] Skill 登记技术方案产物
+- [x] Skill 运行 `complete-stage`
+- [x] 后端进入 `tech-review`
+- [x] 前端收到 WebSocket 事件并刷新
+- [x] 用户 review 通过并派发用例设计
+- [x] 用例设计进入 `case-review`
+- [x] 用户 review 通过并派发开发
+- [x] 开发进入 `delivery`
+- [x] 用户验收归档
 
 验收标准：
 
-- [ ] 完整状态流转无手工改数据库
-- [ ] 所有状态变更都有后端校验
-- [ ] 前端、后端、CLI、Skill 四端类型一致
+- [x] 完整状态流转无手工改数据库
+- [x] 所有状态变更都有后端校验
+- [x] 前端、后端、CLI、Skill 四端类型一致
 
 ## 12. P9 发布准备
 
@@ -410,3 +410,4 @@ web requirement detail + dispatch
 | 2026-06-04 | P5 Daemon 派发 | done | 已实现 dispatcher WebSocket 鉴权入口、daemon 协议处理、固定 Skill 指令映射、Codex Runner、ACK/busy/去重/心跳/重连退避；daemon/dispatch 新增测试直接测源码并通过 80%+ 覆盖率检查 |
 | 2026-06-05 | P6 Skills | done | 已实现三个 Codex Skill 工作流、Skill manifest/package 脚本、CLI install/update/status、sha256 校验和本地修改检测；新增单元测试与 e2e 测试并通过 80%+ 覆盖率检查 |
 | 2026-06-05 | P7 前端 MVP | done | 已实现 Next.js Web 工作台、Tailwind 样式、TanStack Query、token 配置、需求列表/创建/详情、产物分组、dispatch/review/rollback/archive 操作、WebSocket toast 刷新；新增单元测试、e2e 测试和 80%+ 覆盖率检查 |
+| 2026-06-05 | P8 E2E 闭环 | done | 已实现 dispatch queue、dispatcher 拉取/ACK、后端实时事件记录、review 后派发状态校验，并用完整 e2e 串起创建需求、daemon、CLI helper、Skill 阶段回写、review、delivery 和归档 |

@@ -15,6 +15,7 @@ import { handleLocalRoute } from "./modules/local/routes";
 import { InMemoryRequirementRepository } from "./modules/requirements/repository";
 import { RequirementsService } from "./modules/requirements/service";
 import { handleRequirementsRoute } from "./modules/requirements/routes";
+import { handleRealtimeRoute } from "./modules/realtime/routes";
 import { ReviewsService } from "./modules/reviews/service";
 import { handleReviewsRoute } from "./modules/reviews/routes";
 import { SkillsApiService } from "./modules/skills/service";
@@ -52,6 +53,7 @@ export function createApiApp(options: ApiAppOptions = {}) {
             repository,
           )) ??
           (await handleDispatchRoute(request, url.pathname, env, repository)) ??
+          (await handleRealtimeRoute(request, url.pathname, env, repository)) ??
           (await requireUserToken(request, env).then(() => undefined)) ??
           (await handleRequirementsRoute(
             request,

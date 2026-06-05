@@ -22,6 +22,7 @@ import {
   requirementResponseSchema,
   updateRequirementRequestSchema,
 } from "./requirements";
+import { realtimeEventListResponseSchema } from "./realtime";
 import {
   approveReviewRequestSchema,
   reviewActionResponseSchema,
@@ -117,6 +118,12 @@ export const routeSpecs: RouteSpec[] = [
     summary: "Upload artifact",
     request: uploadArtifactRequestSchema,
     response: artifactResponseSchema,
+  },
+  {
+    method: "get",
+    path: "/api/realtime/events",
+    summary: "List realtime events",
+    response: realtimeEventListResponseSchema,
   },
   {
     method: "get",

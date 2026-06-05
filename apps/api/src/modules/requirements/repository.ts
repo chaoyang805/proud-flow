@@ -1,6 +1,10 @@
 import type {
   Artifact,
+  DispatchAckedMessage,
+  DispatchRequestedMessage,
+  DispatchStage,
   Priority,
+  RealtimeEvent,
   Requirement,
   RequirementStatus,
   TokenType,
@@ -38,13 +42,24 @@ export interface ApiTokenRecord {
   revokedAt?: string;
 }
 
+export interface DispatchRequestRecord extends DispatchRequestedMessage {
+  status: "pending" | "acked";
+  ack?: DispatchAckedMessage;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export class InMemoryRequirementRepository {
   private requirements = new Map<string, Requirement>();
   private artifacts = new Map<string, Artifact>();
   private apiTokens = new Map<string, ApiTokenRecord>();
+  private dispatchRequests = new Map<string, DispatchRequestRecord>();
+  private realtimeEvents: RealtimeEvent[] = [];
   private requirementCounter = 0;
   private artifactCounter = 0;
   private tokenCounter = 0;
+  private dispatchCounter = 0;
+  private eventCounter = 0;
 
   createRequirement(input: RequirementCreateInput): Requirement {
     const now = new Date().toISOString();
@@ -85,6 +100,15 @@ export class InMemoryRequirementRepository {
       updatedAt: new Date().toISOString(),
     };
     this.requirements.set(id, updated);
+    if (input.status && input.status !== existing.status) {
+      this.recordRealtimeEvent({
+        type: "requirement.updated",
+        eventId: this.nextEventId(),
+        requirementId: id,
+        status: input.status,
+        message: `Requirement moved to ${input.status}`,
+      });
+    }
     return updated;
   }
 
@@ -144,5 +168,66 @@ export class InMemoryRequirementRepository {
         this.apiTokens.set(record.id, { ...record, revokedAt: now });
       }
     }
+  }
+
+  createDispatchRequest(input: {
+    requirementId: string;
+    stage: DispatchStage;
+  }): DispatchRequestRecord {
+    this.dispatchCounter += 1;
+    const now = new Date().toISOString();
+    const requestId = `dispatch_req_${this.dispatchCounter
+      .toString()
+      .padStart(6, "0")}`;
+    const record: DispatchRequestRecord = {
+      type: "dispatch.requested",
+      requestId,
+      requirementId: input.requirementId,
+      stage: input.stage,
+      status: "pending",
+      createdAt: now,
+      updatedAt: now,
+    };
+    this.dispatchRequests.set(requestId, record);
+    return record;
+  }
+
+  getNextPendingDispatchRequest(): DispatchRequestRecord | undefined {
+    return [...this.dispatchRequests.values()]
+      .filter((request) => request.status === "pending")
+      .sort((left, right) => left.createdAt.localeCompare(right.createdAt))[0];
+  }
+
+  ackDispatchRequest(ack: DispatchAckedMessage): DispatchRequestRecord | undefined {
+    const existing = this.dispatchRequests.get(ack.requestId);
+    if (!existing) return undefined;
+    const updated: DispatchRequestRecord = {
+      ...existing,
+      status: "acked",
+      ack,
+      updatedAt: new Date().toISOString(),
+    };
+    this.dispatchRequests.set(ack.requestId, updated);
+    this.recordRealtimeEvent({
+      type: "dispatch.acked",
+      eventId: this.nextEventId(),
+      requirementId: existing.requirementId,
+      success: ack.success,
+      message: ack.success ? "Dispatch acknowledged" : (ack.errorMessage ?? "Dispatch failed"),
+    });
+    return updated;
+  }
+
+  listRealtimeEvents(): RealtimeEvent[] {
+    return [...this.realtimeEvents];
+  }
+
+  recordRealtimeEvent(event: RealtimeEvent): void {
+    this.realtimeEvents.push(event);
+  }
+
+  private nextEventId(): string {
+    this.eventCounter += 1;
+    return `evt_${this.eventCounter.toString().padStart(6, "0")}`;
   }
 }
