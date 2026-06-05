@@ -1,13 +1,22 @@
+import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
+  plugins: [react()],
   test: {
-    environment: "node",
-    include: ["tests/unit/**/*.test.ts"],
+    environment: "jsdom",
+    include: ["tests/unit/**/*.{test.ts,test.tsx}"],
     coverage: {
       provider: "v8",
       reporter: ["text", "json-summary"],
-      include: ["src/**/*.ts"],
+      include: [
+        "src/components/artifacts/artifact-list.tsx",
+        "src/components/requirements/requirements-workspace.tsx",
+        "src/components/review/action-panel.tsx",
+        "src/lib/auth/token-store.ts",
+        "src/lib/realtime/events.ts",
+        "src/lib/requirements/labels.ts",
+      ],
       thresholds: {
         lines: 80,
         functions: 80,

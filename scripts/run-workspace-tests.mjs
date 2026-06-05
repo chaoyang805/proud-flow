@@ -25,7 +25,11 @@ function hasTypeScriptTests(directory) {
   for (const item of readdirSync(directory, { withFileTypes: true })) {
     const itemPath = path.join(directory, item.name);
     if (item.isDirectory() && hasTypeScriptTests(itemPath)) return true;
-    if (item.isFile() && item.name.endsWith(".test.ts")) return true;
+    if (
+      item.isFile() &&
+      (item.name.endsWith(".test.ts") || item.name.endsWith(".test.tsx"))
+    )
+      return true;
   }
   return false;
 }

@@ -51,4 +51,11 @@ export class RequirementsApiClient {
       body,
     });
   }
+
+  archive(id: string): Promise<Record<string, never>> {
+    return this.http.request({
+      method: "POST",
+      path: `/api/requirements/${id}/archive`,
+    });
+  }
 }

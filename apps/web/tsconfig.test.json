@@ -7,10 +7,13 @@
     ],
     "noEmit": true,
     "module": "ESNext",
-    "moduleResolution": "Bundler"
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx"
   },
   "include": [
     "src/**/*.ts",
-    "tests/unit/**/*.test.ts"
+    "src/**/*.tsx",
+    "tests/unit/**/*.test.ts",
+    "tests/unit/**/*.test.tsx"
   ]
 }

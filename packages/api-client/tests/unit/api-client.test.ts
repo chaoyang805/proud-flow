@@ -127,6 +127,7 @@ describe("api client package", () => {
     const mockFetch = createMockFetch((url, init) => {
       if (url.endsWith("/api/requirements") && init.method === "GET")
         return { body: { items: [requirement] } };
+      if (url.endsWith("/archive")) return { body: { archived: true } };
       if (url.endsWith("/artifacts") && init.method === "GET")
         return { body: { items: [artifact] } };
       if (url.includes("/tokens/rotate"))
@@ -164,6 +165,9 @@ describe("api client package", () => {
     });
 
     assert.equal((await client.requirements.list()).items.length, 1);
+    assert.deepEqual(await client.requirements.archive("REQ-000123"), {
+      archived: true,
+    });
     assert.equal(
       (await client.requirements.update("REQ-000123", { title: "新标题" })).id,
       "REQ-000123",

@@ -335,4 +335,40 @@ describe("workspace e2e", () => {
       ["installed", "installed", "installed"],
     );
   });
+
+  it("exposes the P7 web workspace routes and frontend integrations", async () => {
+    const webPackage = JSON.parse(
+      await readFile(path.join(root, "apps/web/package.json"), "utf8"),
+    );
+    assert.equal(webPackage.scripts.build, "next build");
+    assert.ok(webPackage.dependencies.next);
+    assert.ok(webPackage.dependencies["@tanstack/react-query"]);
+    assert.ok(webPackage.devDependencies.tailwindcss);
+
+    const files = await Promise.all([
+      readFile(path.join(root, "apps/web/src/app/requirements/page.tsx"), "utf8"),
+      readFile(
+        path.join(root, "apps/web/src/app/requirements/new/page.tsx"),
+        "utf8",
+      ),
+      readFile(
+        path.join(root, "apps/web/src/app/requirements/[id]/page.tsx"),
+        "utf8",
+      ),
+      readFile(
+        path.join(root, "apps/web/src/components/review/action-panel.tsx"),
+        "utf8",
+      ),
+      readFile(
+        path.join(root, "apps/web/src/components/realtime/realtime-toast-bridge.tsx"),
+        "utf8",
+      ),
+    ]);
+
+    assert.match(files.join("\n"), /RequirementsWorkspace/);
+    assert.match(files.join("\n"), /RequirementCreatePage/);
+    assert.match(files.join("\n"), /RequirementDetailPage/);
+    assert.match(files.join("\n"), /client.dispatch.dispatch/);
+    assert.match(files.join("\n"), /invalidateQueries/);
+  });
 });
