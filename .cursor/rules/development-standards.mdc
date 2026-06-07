@@ -1,0 +1,46 @@
+---
+description: 开发规范：测试准出、代码风格、PR 检查清单
+alwaysApply: true
+---
+
+# 开发规范
+
+## 测试准出条件
+
+- 单元测试行覆盖率 ≥ **80%**（Statements / Lines 均需达标）
+- 所有测试必须通过，无 skip 或 todo
+- 新增模块必须有对应测试文件
+- 涉及 WebSocket / 外部进程 的代码：纯函数部分单元测试覆盖，副作用部分走 E2E
+
+### 覆盖率验证
+
+```bash
+pnpm test:coverage
+```
+
+CI 中将 `coverage/thresholds` 设为 80%，不达标阻塞合入。
+
+## 代码风格
+
+- TypeScript strict mode，禁止 `any`（除非 `@ts-nocheck` 的测试文件）
+- 文件名：模块用 `kebab-case`，类型文件用 `kebab-case.ts`
+- 导入顺序：Node 内置 → 第三方 → `@proud-flow/*` → 相对路径
+- 函数优先使用 `function` 声明（顶层），回调使用箭头函数
+- 错误处理：使用 `ProudFlowApiError` 统一 API 错误；CLI 错误通过 `formatError` 输出
+
+## 提交前检查清单
+
+- [ ] `pnpm typecheck` 通过
+- [ ] `pnpm lint` 通过
+- [ ] `pnpm test` 通过
+- [ ] 新增代码覆盖率 ≥ 80%
+- [ ] 相关 README 已更新（如有模块变更）
+
+## 目录约定
+
+- `apps/*` — 可部署应用（api、web、cli）
+- `packages/*` — 共享库（domain、api-contract、api-client、config）
+- `skills/*` — Codex Skills
+- `docs/*` — 设计文档
+- `tests/e2e/*` — 端到端测试
+- `scripts/*` — 构建/质量脚本
