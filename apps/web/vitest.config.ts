@@ -13,6 +13,7 @@ export default defineConfig({
         "src/components/artifacts/artifact-list.tsx",
         "src/components/requirements/requirements-workspace.tsx",
         "src/components/review/action-panel.tsx",
+        "src/components/auth/token-guard.tsx",
         "src/lib/auth/token-store.ts",
         "src/lib/realtime/events.ts",
         "src/lib/requirements/labels.ts",

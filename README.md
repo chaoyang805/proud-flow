@@ -32,6 +32,8 @@ Run the API locally:
 pnpm dev:api
 ```
 
+The local API dev server listens on `http://127.0.0.1:8787` and uses an in-memory repository. It is intended for local product-flow acceptance; Cloudflare D1/R2 persistence is validated later in the Cloudflare environment.
+
 Initialize a local CLI against the local API:
 
 ```bash
@@ -61,4 +63,3 @@ More details:
 - [Local Development](docs/local-development.md)
 - [Deployment](docs/deployment.md)
 - [Troubleshooting](docs/troubleshooting.md)
-

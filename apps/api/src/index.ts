@@ -26,12 +26,36 @@ export interface ApiAppOptions {
   repository?: InMemoryRequirementRepository;
 }
 
+function corsHeaders(): Record<string, string> {
+  return {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET,POST,PUT,PATCH,DELETE,OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type,Authorization",
+  };
+}
+
+function withCors(response: Response): Response {
+  if (response.status === 101) return response;
+  const headers = new Headers(response.headers);
+  for (const [name, value] of Object.entries(corsHeaders())) {
+    if (!headers.has(name)) headers.set(name, value);
+  }
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
 export function createApiApp(options: ApiAppOptions = {}) {
   const repository = options.repository ?? new InMemoryRequirementRepository();
 
   return {
     repository,
     async fetch(request: Request, env: ApiEnv = {}): Promise<Response> {
+      if (request.method === "OPTIONS") {
+        return new Response(null, { status: 204, headers: corsHeaders() });
+      }
       try {
         const url = new URL(request.url);
         const requirements = new RequirementsService(repository);
@@ -64,10 +88,10 @@ export function createApiApp(options: ApiAppOptions = {}) {
           (await handleArtifactsRoute(request, url.pathname, artifacts)) ??
           (await handleWorkflowRoute(request, url.pathname, repository));
 
-        if (response) return response;
-        return errorResponse(new ApiError(404, "NOT_FOUND", "Route not found"));
+        if (response) return withCors(response);
+        return withCors(errorResponse(new ApiError(404, "NOT_FOUND", "Route not found")));
       } catch (error) {
-        return errorResponse(toApiError(error));
+        return withCors(errorResponse(toApiError(error)));
       }
     },
   };
@@ -94,8 +118,3 @@ export class RealtimeDurableObject {
     });
   }
 }
-
-export { hashToken, verifyTokenHash } from "./modules/auth/token-service";
-export { InMemoryRequirementRepository } from "./modules/requirements/repository";
-export { schemaSql } from "./db/schema";
-export { jsonResponse };

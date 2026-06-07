@@ -180,6 +180,68 @@ describe("daemon dispatch protocol", () => {
     expect(JSON.parse(status.stdout).ready).toBe(true);
   });
 
+  it("processes one pending dispatch request through the CLI daemon helper", async () => {
+    const { createApiApp, hashToken } = await import("../../../api/src/index");
+    const app = createApiApp();
+    const bootstrapHash = await hashToken("daemon-once-bootstrap", "pepper");
+    const env = {
+      BOOTSTRAP_TOKEN_HASHES: bootstrapHash,
+      TOKEN_HASH_SECRET: "pepper",
+    };
+    const runtime = createMemoryCliRuntime({
+      fetch: (url, init) =>
+        app.fetch(
+          new Request(url, {
+            method: init?.method,
+            headers: init?.headers,
+            body: init?.body,
+          }),
+          env,
+        ),
+      env: { PROUD_FLOW_API_URL: "https://api.test" },
+    });
+
+    await runCli(
+      [
+        "init",
+        "--env",
+        "dev",
+        "--bootstrap-token",
+        "daemon-once-bootstrap",
+        "--machine-name",
+        "daemon-once",
+      ],
+      runtime,
+    );
+
+    await app.fetch(
+      new Request("https://api.test/api/requirements", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: "Daemon once",
+          description: "dispatch helper",
+          priority: "high",
+        }),
+      }),
+      env,
+    );
+    await app.fetch(
+      new Request("https://api.test/api/requirements/REQ-000001/dispatch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ stage: "tech_design" }),
+      }),
+      env,
+    );
+
+    const processed = await runCli(["daemon", "--once", "--json"], runtime);
+    const payload = JSON.parse(processed.stdout);
+    expect(payload.processed).toBe(true);
+    expect(payload.acknowledged).toBe(true);
+    expect(payload.command).toBe("/tech-design REQ-000001");
+  });
+
   it("prunes old ACK cache entries and ignores inbound ACK messages", async () => {
     const sent: DispatchMessage[] = [];
     const daemon = createDaemon({

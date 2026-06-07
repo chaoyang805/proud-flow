@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createApiApp, hashToken } from "../../src/index";
+import { createApiApp, hashToken } from "../../src/test-utils";
 import { handleDispatchRoute } from "../../src/modules/dispatch/routes";
 
 async function readJson(response: Response) {

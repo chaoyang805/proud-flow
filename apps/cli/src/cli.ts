@@ -4,6 +4,8 @@ import {
   ProudFlowApiError,
 } from "@proud-flow/api-client";
 import type { ArtifactType, DispatchStage } from "@proud-flow/domain";
+import { createMockCodexRunner } from "./daemon/codex-runner";
+import { createDaemon } from "./daemon/daemon";
 import { getBackendUrl, isEnvironment } from "./environment";
 import type { CliConfig, CliRuntime, StoredTokenType } from "./runtime";
 import { getSkillStatuses, installSkills } from "./skills/installer";
@@ -153,6 +155,9 @@ async function daemonCommand(
   const config = await requireConfig(runtime);
   const token = await runtime.keychain.getToken("dispatcher");
   if (!token) throw new Error("Missing dispatcher token");
+  if (parsed.flags.once === true) {
+    return daemonOnceCommand(parsed, runtime, token);
+  }
   const payload = {
     ready: true,
     environment: config.environment ?? "prod",
@@ -164,6 +169,42 @@ async function daemonCommand(
   return parsed.json
     ? json(payload)
     : `Proud Flow daemon ready\nEnvironment: ${payload.environment}\n`;
+}
+
+async function daemonOnceCommand(
+  parsed: ParsedArgs,
+  runtime: CliRuntime,
+  token: string,
+): Promise<string> {
+  const client = await createDispatcherClient(runtime, token);
+  const runner = createMockCodexRunner();
+  let acked = false;
+  const daemon = createDaemon({
+    runner,
+    send: async (message) => {
+      if (message.type === "dispatch.acked") {
+        await client.dispatch.ack(message);
+        acked = true;
+      }
+    },
+  });
+  const next = await client.dispatch.next();
+  if ("empty" in next) {
+    const payload = { processed: false, empty: true };
+    return parsed.json ? json(payload) : "No pending dispatch request\n";
+  }
+  await daemon.receive(next);
+  const payload = {
+    processed: true,
+    acknowledged: acked,
+    requestId: next.requestId,
+    requirementId: next.requirementId,
+    stage: next.stage,
+    command: runner.calls[0]?.command,
+  };
+  return parsed.json
+    ? json(payload)
+    : `Processed dispatch ${payload.requestId}: ${payload.command}\n`;
 }
 
 async function skillCommand(
@@ -264,6 +305,15 @@ async function createSkillClient(runtime: CliRuntime) {
   const config = await requireConfig(runtime);
   const token = await runtime.keychain.getToken("skill");
   if (!token) throw new Error("Missing skill token");
+  return createProudFlowApiClient({
+    baseUrl: getBackendUrl(config.environment ?? "prod", runtime.env),
+    token,
+    fetch: runtime.fetch,
+  });
+}
+
+async function createDispatcherClient(runtime: CliRuntime, token: string) {
+  const config = await requireConfig(runtime);
   return createProudFlowApiClient({
     baseUrl: getBackendUrl(config.environment ?? "prod", runtime.env),
     token,

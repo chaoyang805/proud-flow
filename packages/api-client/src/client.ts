@@ -24,7 +24,7 @@ export class ProudFlowHttpClient {
   constructor(options: ProudFlowClientOptions) {
     this.baseUrl = options.baseUrl.replace(/\/$/, "");
     this.token = options.token;
-    this.fetchImpl = options.fetch ?? fetch;
+    this.fetchImpl = options.fetch ? options.fetch : fetch.bind(globalThis);
   }
 
   async request<TRequest, TResponse>(

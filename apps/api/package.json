@@ -12,6 +12,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json && tsc-alias -p tsconfig.json --resolve-full-paths --resolve-full-extension .js",
+    "dev": "pnpm exec wrangler dev --config wrangler.jsonc --env dev --ip 127.0.0.1",
     "deploy:dev": "pnpm build && pnpm exec wrangler deploy --config wrangler.jsonc --env dev",
     "deploy:prod": "pnpm build && pnpm exec wrangler deploy --config wrangler.jsonc --env production",
     "db:migrate:dev": "pnpm exec wrangler d1 migrations apply proud-flow-dev --config wrangler.jsonc --env dev --remote",
@@ -23,6 +24,7 @@
     "test:coverage": "node ../../scripts/run-workspace-coverage.mjs"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260607.1",
     "@proud-flow/config": "workspace:*"
   },
   "dependencies": {

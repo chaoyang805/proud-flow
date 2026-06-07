@@ -6,12 +6,19 @@ import {
 } from "../modules/auth/token-service";
 import type { InMemoryRequirementRepository } from "../modules/requirements/repository";
 
+function readToken(request: Request): string | undefined {
+  const fromHeader = readBearerToken(request.headers);
+  if (fromHeader) return fromHeader;
+  const url = new URL(request.url);
+  return url.searchParams.get("token") ?? undefined;
+}
+
 export async function requireUserToken(
   request: Request,
   env: ApiEnv,
 ): Promise<void> {
   const hashes = parseHashList(env.USER_TOKEN_HASHES);
-  const token = readBearerToken(request.headers);
+  const token = readToken(request);
   if (hashes.length === 0) {
     if (token?.startsWith("pf_skill_") || token?.startsWith("pf_local_")) {
       throw new ApiError(403, "FORBIDDEN", "Token cannot access user API");

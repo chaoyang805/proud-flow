@@ -1,6 +1,6 @@
 // @ts-nocheck
 import assert from "node:assert/strict";
-import { createApiApp, hashToken } from "../../src/index";
+import { createApiApp, hashToken } from "../../src/test-utils";
 
 export async function json(response) {
   return response.json();

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { TokenGuard } from "../components/auth/token-guard";
 import { RealtimeToastBridge } from "../components/realtime/realtime-toast-bridge";
 import { ProudFlowQueryProvider } from "../lib/query/provider";
 import "./globals.css";
@@ -15,8 +16,10 @@ export default function RootLayout({
     <html lang="zh-CN">
       <body>
         <ProudFlowQueryProvider>
-          <RealtimeToastBridge />
-          {children}
+          <TokenGuard>
+            <RealtimeToastBridge />
+            {children}
+          </TokenGuard>
         </ProudFlowQueryProvider>
       </body>
     </html>

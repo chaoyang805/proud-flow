@@ -5,7 +5,7 @@ import {
   hashToken,
   schemaSql,
   verifyTokenHash,
-} from "../../src/index";
+} from "../../src/test-utils";
 import { createApiApp, createRequirement, json, request } from "./api-test-utils";
 
 describe("artifacts and API auth", () => {

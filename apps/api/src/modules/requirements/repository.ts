@@ -55,6 +55,7 @@ export class InMemoryRequirementRepository {
   private apiTokens = new Map<string, ApiTokenRecord>();
   private dispatchRequests = new Map<string, DispatchRequestRecord>();
   private realtimeEvents: RealtimeEvent[] = [];
+  private wsClients: Array<(event: RealtimeEvent) => void> = [];
   private requirementCounter = 0;
   private artifactCounter = 0;
   private tokenCounter = 0;
@@ -224,6 +225,20 @@ export class InMemoryRequirementRepository {
 
   recordRealtimeEvent(event: RealtimeEvent): void {
     this.realtimeEvents.push(event);
+    this.broadcastEvent(event);
+  }
+
+  registerWsClient(send: (event: RealtimeEvent) => void): () => void {
+    this.wsClients.push(send);
+    return () => {
+      this.wsClients = this.wsClients.filter((fn) => fn !== send);
+    };
+  }
+
+  private broadcastEvent(event: RealtimeEvent): void {
+    for (const send of this.wsClients) {
+      try { send(event); } catch { /* client disconnected */ }
+    }
   }
 
   private nextEventId(): string {

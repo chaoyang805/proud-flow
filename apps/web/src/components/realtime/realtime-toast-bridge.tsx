@@ -22,27 +22,26 @@ export function RealtimeToastBridge() {
 
   useEffect(() => {
     const token = getStoredUserToken();
-    if (!token) return;
     let socket: WebSocket | undefined;
     let disposed = false;
     let retryMs = 600;
 
     const connect = () => {
-      const wsUrl = `${getApiBaseUrl().replace(/^http/, "ws")}/api/realtime/ws`;
+      const wsUrl = `${getApiBaseUrl().replace(/^http/, "ws")}/api/realtime/ws?token=${encodeURIComponent(token ?? "")}`;
       socket = new WebSocket(wsUrl);
       socket.onopen = () => {
-        retryMs = 600;
+          retryMs = 600;
         setConnection("connected");
         void queryClient.invalidateQueries();
       };
       socket.onmessage = (message) => {
         if (typeof message.data !== "string") return;
         const event = parseRealtimeEvent(message.data);
-        if (!event || seen.current.has(event.eventId)) return;
+        if (seen.current.has(event.eventId)) return;
         seen.current.add(event.eventId);
         handleRealtimeEvent(event, queryClient, setToasts);
       };
-      socket.onclose = () => {
+      socket.onclose = (event) => {
         if (disposed) return;
         setConnection("lost");
         window.setTimeout(connect, retryMs);

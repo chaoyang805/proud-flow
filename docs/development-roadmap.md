@@ -392,7 +392,69 @@ dispatch WebSocket
 web requirement detail + dispatch
 ```
 
-## 14. 当前进度
+## 14. 验收计划清单
+
+当前验收策略：先使用 `InMemoryRequirementRepository` 完成本地产品流程验收；等进入 Cloudflare 环境验收时，再实现并切换 D1 数据库仓储。D1 binding、迁移 SQL 和 Wrangler 配置已经作为发布准备存在，但当前本地验收不要求数据持久化。
+
+### 14.1 本地验收
+
+目标：验证 Proud Flow 的产品交互、状态流转、CLI / daemon / Skills / Web 闭环是否符合设计。
+
+- [x] 使用 `InMemoryRequirementRepository` 启动本地 API
+- [x] 修复或补充 `pnpm dev:api` 本地启动脚本
+- [ ] Web 可连接本地 API
+- [ ] CLI 可通过本地 API 完成 `init`、`status` 和 Skills helper 命令
+- [x] daemon 可通过本地 API 消费一次 pending dispatch 并 ACK
+- [ ] 完成创建需求、派发技术方案、Skill 回写产物、review 通过、派发用例、派发开发、交付归档的本地手动验收
+- [ ] 本地验收期间允许 API 重启后数据丢失
+- [ ] 本地验收期间不要求连接 D1 数据库
+- [ ] 本地验收期间不要求真实 R2 持久化上传
+- [ ] 本地验收前执行 `pnpm typecheck`
+- [ ] 本地验收前执行 `pnpm lint`
+- [ ] 本地验收前执行 `pnpm test`
+- [ ] 本地验收前执行 `pnpm test:e2e`
+- [ ] 本地验收前执行 `pnpm test:browser`
+- [ ] 本地验收前执行 `pnpm test:coverage`，各工作区覆盖率保持 80%+
+
+### 14.2 Cloudflare 环境验收
+
+目标：验证 Proud Flow 在 Cloudflare Workers、D1、R2、Durable Objects 和 OpenNext Web 部署环境中的真实运行能力。
+
+- [ ] 实现 repository 接口抽象
+- [ ] 实现 `D1RequirementRepository`
+- [ ] API 在 `env.DB` 存在时使用 D1 repository
+- [ ] 测试环境可继续显式注入 InMemory repository
+- [ ] 补充 D1 repository 单元测试
+- [ ] 补充 D1 持久化 e2e 测试
+- [ ] 替换 `apps/api/wrangler.jsonc` 中 dev/prod D1 `database_id` 占位符
+- [ ] 在 Cloudflare dev 环境配置 `TOKEN_HASH_SECRET`、`BOOTSTRAP_TOKEN_HASHES`、`USER_TOKEN_HASHES` 等 secrets
+- [ ] 执行 dev D1 migration
+- [ ] 执行 API Worker dev dry-run
+- [ ] 部署 API Worker dev
+- [ ] 部署 Web dev
+- [ ] CLI / daemon 连接 dev API 完成完整生命周期验收
+- [ ] 确认 API 重启或重新部署后需求、产物、token、dispatch 状态仍可读取
+- [ ] 确认 R2 artifact 上传和读取路径可用
+- [ ] 确认 Durable Object dispatch / realtime 生产形态可用
+
+### 14.3 生产发布验收
+
+目标：在 dev 环境验收通过后，完成生产账号、生产资源和发布物的最后确认。
+
+- [ ] 替换 production D1 `database_id`
+- [ ] 配置 production secrets
+- [ ] 执行 production D1 migration
+- [ ] 发布 production API Worker
+- [ ] 发布 production Web
+- [ ] 发布 CLI 包
+- [ ] 发布 Skill 包
+- [ ] 配置 production Skill manifest 静态资源地址
+- [ ] 新机器可按文档完成 `proud-flow init`
+- [ ] production Web 可完成完整生命周期验收
+- [ ] production daemon 可完成 dispatch 和 ACK
+- [ ] production Skill 可通过 CLI helper 回写后端
+
+## 15. 当前进度
 
 | 日期 | 事项 | 状态 | 备注 |
 | --- | --- | --- | --- |
@@ -412,3 +474,5 @@ web requirement detail + dispatch
 | 2026-06-05 | P7 前端 MVP | done | 已实现 Next.js Web 工作台、Tailwind 样式、TanStack Query、token 配置、需求列表/创建/详情、产物分组、dispatch/review/rollback/archive 操作、WebSocket toast 刷新；新增单元测试、e2e 测试和 80%+ 覆盖率检查 |
 | 2026-06-05 | P8 E2E 闭环 | done | 已实现 dispatch queue、dispatcher 拉取/ACK、后端实时事件记录、review 后派发状态校验，并用完整 e2e 串起创建需求、daemon、CLI helper、Skill 阶段回写、review、delivery 和归档 |
 | 2026-06-05 | P9 发布准备 | done | 已实现 Wrangler dev/prod 配置、D1/R2/Durable Object bindings、Web prod API env、CLI bin 和 Node runtime、发布脚本、Skill manifest base URL 配置、README/本地开发/部署/故障排查文档；真实 Cloudflare resource id、secret、deploy/publish 按部署文档在目标账号执行 |
+| 2026-06-07 | 验收计划 | done | 明确本地验收先使用 InMemory repository；Cloudflare 环境验收前再实现 D1 repository、持久化测试和真实资源配置 |
+| 2026-06-07 | 本地验收入口 | done | 已补充 `pnpm dev:api`，以 Node dev server 启动 Worker fetch app 和 InMemory repository，并更新本地验收文档 |
