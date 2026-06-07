@@ -26,3 +26,28 @@ export type {
   MockCodexRunner,
 } from "./daemon/codex-runner";
 export { createStageCommand } from "./daemon/stage-router";
+export {
+  startDaemonChild,
+  runWebSocketLoop,
+  buildWebSocketUrl,
+  computeRetryDelay,
+  handleWebSocketMessage,
+} from "./daemon/child-entry";
+export type { DaemonChildOptions, WebSocketLoopOptions } from "./daemon/child-entry";
+export {
+  configDir,
+  pidPath,
+  logPath,
+  readPid,
+  writePid,
+  removePid,
+  isProcessAlive,
+  spawnDaemon,
+} from "./daemon/spawn";
+export type { SpawnOptions } from "./daemon/spawn";
+export {
+  resolveConfigDir,
+  resolveLogPath,
+  resolvePidPath,
+  createLogger,
+} from "./daemon/logger";

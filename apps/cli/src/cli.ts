@@ -4,11 +4,22 @@ import {
   ProudFlowApiError,
 } from "@proud-flow/api-client";
 import type { ArtifactType, DispatchStage } from "@proud-flow/domain";
+import process from "node:process";
 import { createMockCodexRunner } from "./daemon/codex-runner";
 import { createDaemon } from "./daemon/daemon";
 import { getBackendUrl, isEnvironment } from "./environment";
 import type { CliConfig, CliRuntime, StoredTokenType } from "./runtime";
 import { getSkillStatuses, installSkills } from "./skills/installer";
+import {
+  pidPath,
+  logPath,
+  readPid,
+  writePid,
+  removePid,
+  isProcessAlive,
+  spawnDaemon,
+} from "./daemon/spawn";
+import { join } from "node:path";
 
 export interface CliResult {
   exitCode: number;
@@ -152,59 +163,176 @@ async function daemonCommand(
   parsed: ParsedArgs,
   runtime: CliRuntime,
 ): Promise<string> {
+  const [_, subcommand] = parsed.command;
+
+  if (subcommand === "status") {
+    const pid = readPid();
+    if (!pid) {
+      return parsed.json ? json({ running: false }) : "Daemon not running\n";
+    }
+    if (isProcessAlive(pid)) {
+      return parsed.json
+        ? json({ running: true, pid })
+        : `Daemon running (PID: ${pid})\n`;
+    }
+    removePid();
+    return parsed.json ? json({ running: false }) : "Daemon not running\n";
+  }
+
+  if (subcommand === "stop") {
+    const pid = readPid();
+    if (!pid) {
+      return parsed.json ? json({ stopped: false }) : "Daemon not running\n";
+    }
+    try {
+      process.kill(pid, "SIGTERM");
+      removePid();
+      return parsed.json
+        ? json({ stopped: true, pid })
+        : `Daemon stopped (PID: ${pid})\n`;
+    } catch {
+      removePid();
+      return parsed.json ? json({ stopped: false }) : "Daemon not running\n";
+    }
+  }
+
+  if (subcommand === "logs") {
+    return daemonLogsCommand(parsed, runtime);
+  }
+
+  // Start daemon
+  const foreground = parsed.flags.foreground === true;
+
+  // Check already running
+  const existingPid = readPid();
+  if (existingPid && isProcessAlive(existingPid)) {
+    throw new Error(`Daemon already running (PID: ${existingPid})`);
+  }
+  removePid();
+
+  if (foreground) {
+    return daemonForeground(parsed, runtime);
+  }
+
+  // Background mode: spawn child process
+  const { pid } = spawnDaemon({
+    binPath: join(runtime.cwd, "dist", "bin.js"),
+  });
+  writePid(pid);
+  return parsed.json
+    ? json({ started: true, pid, log: logPath() })
+    : `Daemon started (PID: ${pid}, log: ${logPath()})\n`;
+}
+
+async function daemonForeground(
+  parsed: ParsedArgs,
+  runtime: CliRuntime,
+): Promise<string> {
   const config = await requireConfig(runtime);
   const token = await runtime.keychain.getToken("dispatcher");
   if (!token) throw new Error("Missing dispatcher token");
-  if (parsed.flags.once === true) {
-    return daemonOnceCommand(parsed, runtime, token);
-  }
-  const payload = {
-    ready: true,
-    environment: config.environment ?? "prod",
-    websocketUrl: `${getBackendUrl(
-      config.environment ?? "prod",
-      runtime.env,
-    ).replace(/^http/, "ws")}/api/dispatch/ws`,
+
+  const wsUrl = `${getBackendUrl(
+    config.environment ?? "prod",
+    runtime.env,
+  ).replace(/^http/, "ws")}/api/dispatch/ws?token=${encodeURIComponent(token)}`;
+
+  process.stdout.write(`[daemon] starting foreground, environment=${config.environment ?? "prod"} PID=${process.pid}\n`);
+  process.stdout.write(`[daemon] WebSocket: ${wsUrl}\n`);
+
+  process.on("SIGINT", () => {
+    process.stdout.write("[daemon] SIGINT, shutting down\n");
+    process.exit(0);
+  });
+  process.on("SIGTERM", () => {
+    process.stdout.write("[daemon] SIGTERM, shutting down\n");
+    process.exit(0);
+  });
+
+  let retryMs = 600;
+
+  const connect = () => {
+    process.stdout.write("[daemon] connecting WebSocket...\n");
+    const ws = new WebSocket(wsUrl);
+    const runner = createMockCodexRunner();
+    const daemon = createDaemon({
+      runner,
+      send: async (message) => {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify(message));
+          process.stdout.write(`[daemon] sent: ${message.type}\n`);
+        }
+      },
+    });
+
+    ws.onopen = () => {
+      retryMs = 600;
+      process.stdout.write("[daemon] WebSocket connected\n");
+    };
+
+    ws.onmessage = (event) => {
+      const data = String(event.data);
+      try {
+        const msg = JSON.parse(data);
+        process.stdout.write(`[daemon] received: type=${msg.type}\n`);
+        if (msg.type === "dispatcher.ping") {
+          ws.send(JSON.stringify({ type: "dispatcher.pong", timestamp: new Date().toISOString() }));
+          return;
+        }
+        if (msg.type === "dispatch.requested") {
+          process.stdout.write(`[daemon] dispatch: requestId=${msg.requestId} requirement=${msg.requirementId} stage=${msg.stage}\n`);
+          daemon.receive(msg);
+          return;
+        }
+      } catch {
+        process.stdout.write(`[daemon] raw: ${data}\n`);
+      }
+    };
+
+    ws.onclose = () => {
+      process.stdout.write(`[daemon] WebSocket closed, retry in ${retryMs}ms\n`);
+      setTimeout(connect, retryMs);
+      retryMs = Math.min(retryMs * 2, 30_000);
+    };
+
+    ws.onerror = () => {
+      process.stdout.write("[daemon] WebSocket connection failed (check token and API)\n");
+    };
   };
-  return parsed.json
-    ? json(payload)
-    : `Proud Flow daemon ready\nEnvironment: ${payload.environment}\n`;
+
+  connect();
+
+  // Block forever — the promise never resolves, this keeps the process alive
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+  return await new Promise(() => {});
 }
 
-async function daemonOnceCommand(
+async function daemonLogsCommand(
   parsed: ParsedArgs,
-  runtime: CliRuntime,
-  token: string,
+  _runtime: CliRuntime,
 ): Promise<string> {
-  const client = await createDispatcherClient(runtime, token);
-  const runner = createMockCodexRunner();
-  let acked = false;
-  const daemon = createDaemon({
-    runner,
-    send: async (message) => {
-      if (message.type === "dispatch.acked") {
-        await client.dispatch.ack(message);
-        acked = true;
-      }
-    },
-  });
-  const next = await client.dispatch.next();
-  if ("empty" in next) {
-    const payload = { processed: false, empty: true };
-    return parsed.json ? json(payload) : "No pending dispatch request\n";
+  const { readFileSync, existsSync } = await import("node:fs");
+  const { execSync } = await import("node:child_process");
+  const lines = Number(parsed.flags.lines) || 50;
+  const follow = parsed.flags.follow === true;
+  const logFile = logPath();
+
+  if (!existsSync(logFile)) {
+    return "No daemon log found\n";
   }
-  await daemon.receive(next);
-  const payload = {
-    processed: true,
-    acknowledged: acked,
-    requestId: next.requestId,
-    requirementId: next.requirementId,
-    stage: next.stage,
-    command: runner.calls[0]?.command,
-  };
-  return parsed.json
-    ? json(payload)
-    : `Processed dispatch ${payload.requestId}: ${payload.command}\n`;
+
+  if (follow) {
+    execSync(`tail -n ${lines} -f "${logFile}"`, {
+      stdio: "inherit",
+    });
+    return "";
+  }
+
+  // Read last N lines
+  const content = readFileSync(logFile, "utf8");
+  const allLines = content.split("\n").filter(Boolean);
+  const lastLines = allLines.slice(-lines);
+  return lastLines.join("\n") + "\n";
 }
 
 async function skillCommand(
@@ -344,7 +472,7 @@ function parseArgs(args: readonly string[]): ParsedArgs {
       }
     } else if (
       command.length === 0 ||
-      ((command[0] === "auth" || command[0] === "skill") && command.length === 1)
+      ((command[0] === "auth" || command[0] === "skill" || command[0] === "daemon") && command.length === 1)
     ) {
       command.push(item);
     } else {

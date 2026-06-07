@@ -30,6 +30,8 @@
   "dependencies": {
     "@proud-flow/api-client": "workspace:*",
     "@proud-flow/api-contract": "workspace:*",
-    "@proud-flow/domain": "workspace:*"
+    "@proud-flow/domain": "workspace:*",
+    "pino": "^10.3.1",
+    "pino-roll": "^4.0.0"
   }
 }
