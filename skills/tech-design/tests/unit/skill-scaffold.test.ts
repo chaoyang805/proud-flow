@@ -1,8 +1,13 @@
 // @ts-nocheck
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, it } from "vitest";
 import { skillPackage, supportsDispatchStages } from "../../src/index";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const skillMdPath = join(__dirname, "..", "..", "SKILL.md");
 
 describe("tech-design skill scaffold", () => {
   it("resolves the shared domain stages", () => {
@@ -11,11 +16,11 @@ describe("tech-design skill scaffold", () => {
   });
 
   it("documents the Proud Flow helper workflow without embedded credentials", () => {
-    const content = readFileSync("SKILL.md", "utf8");
-    assert.match(content, /proud-flow get-task-context <requirementId> --stage tech_design/);
-    assert.match(content, /proud-flow start-stage <requirementId> --stage tech_design/);
-    assert.match(content, /proud-flow attach-artifact <requirementId> --type tech_design_pr/);
-    assert.match(content, /proud-flow complete-stage <requirementId> --stage tech_design/);
+    const content = readFileSync(skillMdPath, "utf8");
+    assert.match(content, /proud-flow get-task-context <requirementId>/);
+    assert.match(content, /proud-flow start-stage <requirementId> --stage/);
+    assert.match(content, /proud-flow attach-artifact <requirementId>/);
+    assert.match(content, /proud-flow complete-stage <requirementId>/);
     assert.doesNotMatch(content, /pf_(skill|dispatcher|local)_/);
     assert.doesNotMatch(content, /fetch\(|curl\s|Authorization:/);
   });

@@ -319,4 +319,29 @@ describe("api client package", () => {
       },
     );
   });
+
+  it("staticTokenProvider returns token when set", () => {
+    const provider = staticTokenProvider("my-token");
+    assert.equal(provider.getToken(), "my-token");
+  });
+
+  it("staticTokenProvider returns undefined when token not set", () => {
+    const provider = staticTokenProvider(undefined);
+    assert.equal(provider.getToken(), undefined);
+  });
+
+  it("ProudFlowApiError carries all fields", () => {
+    const error = new ProudFlowApiError(400, {
+      error: {
+        code: "VALIDATION_ERROR",
+        message: "bad request",
+        details: [{ field: "title", message: "required" }],
+      },
+    });
+    assert.equal(error.code, "VALIDATION_ERROR");
+    assert.equal(error.status, 400);
+    assert.equal(error.message, "bad request");
+    assert.equal(error.details.length, 1);
+    assert.equal(error.name, "ProudFlowApiError");
+  });
 });

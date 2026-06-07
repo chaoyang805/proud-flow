@@ -3,7 +3,7 @@
   "compilerOptions": {
     "allowJs": true,
     "incremental": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "noEmit": true,
     "plugins": [
       {
