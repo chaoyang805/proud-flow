@@ -12,6 +12,8 @@ import { D1RequirementRepository } from "./modules/requirements/d1-repository";
 import { RequirementsService } from "./modules/requirements/service";
 import { installRequirementsModule } from "./modules/requirements/routes";
 import { installRealtimeModule } from "./modules/realtime/routes";
+import { DispatchDurableObject } from "./durable-objects/dispatch-do";
+import { RealtimeDurableObject } from "./durable-objects/realtime-do";
 import { RealtimeHub } from "./modules/realtime/hub";
 import { ReviewsService } from "./modules/reviews/service";
 import { installReviewsModule } from "./modules/reviews/routes";
@@ -41,22 +43,39 @@ function withCors(response: Response): Response {
 }
 
 export function createApiApp(options: ApiAppOptions = {}) {
-  function buildRepository(env: ApiEnv): IRequirementRepository {
-    if (options.repository) return options.repository;
-    const db = (env as any).DB;
-    if (db) {
-      console.log("[api] using D1RequirementRepository (D1 available)");
-      return new D1RequirementRepository(db);
-    }
-    console.log("[api] using InMemoryRequirementRepository (no D1)");
-    return new InMemoryRequirementRepository();
-  }
-
   let repository: IRequirementRepository | undefined;
+  let repositoryBootstrap: Promise<IRequirementRepository> | undefined;
   const hub = new RealtimeHub();
 
+  async function bootstrapRepository(env: ApiEnv): Promise<IRequirementRepository> {
+    if (options.repository) {
+      repository = options.repository;
+      return repository;
+    }
+    if (repository) return repository;
+    if (repositoryBootstrap) return repositoryBootstrap;
+
+    repositoryBootstrap = (async () => {
+      const db = (env as { DB?: ConstructorParameters<typeof D1RequirementRepository>[0] }).DB;
+      if (db) {
+        console.log("[api] bootstrapping D1RequirementRepository...");
+        const repo = new D1RequirementRepository(db);
+        await repo.start();
+        repository = repo;
+        return repo;
+      }
+      console.log("[api] bootstrapping InMemoryRequirementRepository");
+      repository = new InMemoryRequirementRepository();
+      return repository;
+    })();
+
+    return repositoryBootstrap;
+  }
+
   function buildRouter(env: ApiEnv): RouterType {
-    if (!repository) repository = buildRepository(env);
+    if (!repository) {
+      throw new Error("Repository must be bootstrapped before building router");
+    }
 
     const requirements = new RequirementsService(repository);
     const reviews = new ReviewsService(repository);
@@ -68,6 +87,8 @@ export function createApiApp(options: ApiAppOptions = {}) {
 
     // OPTIONS preflight
     router.options("*", () => new Response(null, { status: 204, headers: corsHeaders() }));
+
+    router.get("/api/health", () => Response.json({ status: "ok" }));
 
     // Register all modules (each module handles its own auth)
     installLocalModule(router, local, repository, env);
@@ -100,6 +121,7 @@ export function createApiApp(options: ApiAppOptions = {}) {
       console.log(`[api] --> ${request.method} ${url.pathname}${url.search || ""}`);
 
       try {
+        await bootstrapRepository(env);
         const router = buildRouter(env);
         const response = await router.fetch(request, env);
         console.log(`[api] <-- ${response.status} ${request.method} ${url.pathname} (${Date.now() - start}ms)`);
@@ -117,16 +139,8 @@ export function createApiApp(options: ApiAppOptions = {}) {
 
 const defaultApp = createApiApp();
 
-export default { fetch: defaultApp.fetch };
+export default {
+  fetch: defaultApp.fetch,
+};
 
-export class DispatchDurableObject {
-  fetch(): Response {
-    return new Response("Dispatch Durable Object is configured for deployment", { status: 501 });
-  }
-}
-
-export class RealtimeDurableObject {
-  fetch(): Response {
-    return new Response("Realtime Durable Object is configured for deployment", { status: 501 });
-  }
-}
+export { DispatchDurableObject, RealtimeDurableObject };

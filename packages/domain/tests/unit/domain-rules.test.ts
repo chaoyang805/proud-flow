@@ -73,6 +73,7 @@ describe("errors module", () => {
     for (const c of errorCodes) {
       assert.equal(isErrorCode(c), true);
     }
+    assert.equal(isErrorCode("DISPATCH_TIMEOUT"), true);
   });
 
   it("isErrorCode returns false for unknown", () => {

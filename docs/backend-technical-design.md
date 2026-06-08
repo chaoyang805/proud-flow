@@ -382,6 +382,14 @@ daemon ACK：
 - 极简 Skill 指令映射由 daemon 负责。
 - 复杂 prompt 和阶段说明由 Skill 负责。
 - ACK 成功只代表 daemon 已收到并调用 Codex，不代表需求状态变化。
+
+实现形态（`DispatchDurableObject`）：
+
+- Worker 鉴权后把 WebSocket upgrade 代理到 DO `/ws`。
+- `POST /api/requirements/:id/dispatch` 校验业务状态后调用 DO `/dispatch`，在 DO 内向在线 daemon 发送 `dispatch.requested` 并等待最多 5 秒 ACK。
+- DO 收到 `dispatch.acked` 后调用 `RealtimeDurableObject` `/broadcast`，向前端推送 `dispatch.acked` 实时事件。
+- DO 每 30 秒向 daemon 发送 `dispatcher.ping`；daemon 被动回复 `dispatcher.pong`。连续 pong 超时则关闭连接。
+- 无 DO binding 时（单元测试）回退到内存 `RealtimeHub`。
 - 如果 WebSocket 不在线或 ACK 超时，派发接口返回失败，前端收到派发失败提示。
 - MVP 不持久化派发记录；如果需要断线恢复和可靠派发，再增加 `dispatch_jobs` 表。
 

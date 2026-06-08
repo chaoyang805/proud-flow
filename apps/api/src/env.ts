@@ -10,9 +10,13 @@ export interface R2BucketBinding {
   ): Promise<unknown>;
 }
 
+import type { DurableObjectNamespace } from "@cloudflare/workers-types";
+
 export interface ApiEnv {
   DB?: D1DatabaseBinding;
   ARTIFACT_BUCKET?: R2BucketBinding;
+  DISPATCH_DO?: DurableObjectNamespace;
+  REALTIME_DO?: DurableObjectNamespace;
   ENVIRONMENT?: string;
   SKILL_MANIFEST_BASE_URL?: string;
   USER_TOKEN_HASHES?: string;

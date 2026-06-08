@@ -276,6 +276,7 @@ async function daemonForeground(
         const msg = JSON.parse(data);
         process.stdout.write(`[daemon] received: type=${msg.type}\n`);
         if (msg.type === "dispatcher.ping") {
+          process.stdout.write("[daemon] heartbeat: received ping from api\n");
           ws.send(JSON.stringify({ type: "dispatcher.pong", timestamp: new Date().toISOString() }));
           return;
         }

@@ -25,7 +25,7 @@ pnpm test
 
 ## Running The API
 
-The API is a Cloudflare Workers-style fetch app. During local acceptance, run it with the local Node dev server. The dev server uses the same Worker fetch app and an `InMemoryRequirementRepository`, so it is suitable for validating product flow but does not persist data after restart.
+The API runs through `wrangler dev` with local D1, R2, and Durable Object bindings. Dispatch and realtime WebSocket connections are owned by `DispatchDurableObject` and `RealtimeDurableObject`, so daemon dispatch and frontend realtime notifications work across separate HTTP requests.
 
 ```bash
 pnpm dev:api
@@ -37,7 +37,9 @@ The default address is:
 http://127.0.0.1:8787
 ```
 
-Local acceptance intentionally does not require D1 or R2. If `BOOTSTRAP_TOKEN_HASHES` is not set, `proud-flow init` accepts any bootstrap token and stores generated local tokens in memory on the API side. Restarting `pnpm dev:api` clears requirements, artifacts, dispatch requests, and generated token records.
+Local D1 state persists under `apps/api/.wrangler/state/`. Restarting `pnpm dev:api` keeps requirements, artifacts, and API tokens unless you clear that directory. WebSocket connections are dropped on reload and daemon / web clients reconnect automatically.
+
+If `BOOTSTRAP_TOKEN_HASHES` is not set, `proud-flow init` accepts any bootstrap token. Unit tests without DO bindings still use the in-memory `RealtimeHub` fallback.
 
 For Cloudflare-style development, use the API deploy configuration in `apps/api/wrangler.jsonc` after replacing placeholder D1 database IDs.
 
@@ -156,4 +158,4 @@ node apps/cli/dist/bin.js complete-stage REQ-000001 --stage tech_design --json
 Local acceptance scope:
 
 - In scope: product interaction, API behavior, workflow validation, CLI helper behavior, daemon command readiness, Skill package install/update/status, realtime refresh behavior where available.
-- Out of scope: D1 persistence, R2 persistence, real Cloudflare Durable Object lifecycle, production secrets, production package publishing.
+- Out of scope: production secrets, production package publishing, multi-PoP edge behavior.

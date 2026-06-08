@@ -7,6 +7,7 @@ import {
 import {
   booleanSchema,
   enumSchema,
+  numberSchema,
   objectSchema,
   optionalSchema,
   stringSchema,
@@ -23,7 +24,34 @@ export interface DispatchRequirementResponse {
   requestId: string;
   stage: DispatchStage;
   accepted: boolean;
+  ack?: {
+    success: boolean;
+    errorMessage?: string;
+  };
 }
+
+export interface DispatchDoStatusResponse {
+  online: boolean;
+  connectionCount: number;
+}
+
+export type DispatchPushFailureCode = "DISPATCHER_OFFLINE" | "DISPATCH_TIMEOUT";
+
+export interface DispatchPushAckResult {
+  success: boolean;
+  errorMessage?: string;
+}
+
+export type DispatchPushResponse =
+  | {
+      accepted: true;
+      requestId: string;
+      ack: DispatchPushAckResult;
+    }
+  | {
+      accepted: false;
+      code: DispatchPushFailureCode;
+    };
 
 export const dispatchRequestIdSchema = stringSchema({
   pattern: /^dispatch_req_[A-Za-z0-9_-]+$/,
@@ -34,12 +62,66 @@ export const dispatchRequirementRequestSchema: Schema<DispatchRequirementRequest
     stage: enumSchema(dispatchStages) as Schema<DispatchStage>,
   });
 
+const dispatchPushAckResultSchema: Schema<DispatchPushAckResult> = objectSchema({
+  success: booleanSchema(),
+  errorMessage: optionalSchema(stringSchema({ minLength: 1 })),
+});
+
 export const dispatchRequirementResponseSchema: Schema<DispatchRequirementResponse> =
   objectSchema({
     requestId: dispatchRequestIdSchema,
     stage: enumSchema(dispatchStages) as Schema<DispatchStage>,
     accepted: booleanSchema(),
+    ack: optionalSchema(dispatchPushAckResultSchema),
   });
+
+export const dispatchDoStatusResponseSchema: Schema<DispatchDoStatusResponse> =
+  objectSchema({
+    online: booleanSchema(),
+    connectionCount: numberSchema({ integer: true, minimum: 0 }),
+  });
+
+function isDispatchPushResponse(value: unknown): value is DispatchPushResponse {
+  if (typeof value !== "object" || value === null) return false;
+  const record = value as Record<string, unknown>;
+  if (record.accepted === true) {
+    return (
+      dispatchRequestIdSchema.is(record.requestId) &&
+      dispatchPushAckResultSchema.is(record.ack)
+    );
+  }
+  if (record.accepted === false) {
+    return (
+      record.code === "DISPATCHER_OFFLINE" || record.code === "DISPATCH_TIMEOUT"
+    );
+  }
+  return false;
+}
+
+export const dispatchPushResponseSchema: Schema<DispatchPushResponse> = {
+  parse(value) {
+    if (!isDispatchPushResponse(value)) {
+      throw new Error("Value does not match dispatch push response schema");
+    }
+    return value;
+  },
+  is: isDispatchPushResponse,
+  toJsonSchema() {
+    return {
+      anyOf: [
+        objectSchema({
+          accepted: booleanSchema(),
+          requestId: dispatchRequestIdSchema,
+          ack: dispatchPushAckResultSchema,
+        }).toJsonSchema(),
+        objectSchema({
+          accepted: booleanSchema(),
+          code: enumSchema(["DISPATCHER_OFFLINE", "DISPATCH_TIMEOUT"] as const),
+        }).toJsonSchema(),
+      ],
+    };
+  },
+};
 
 export const dispatchRequestedMessageSchema: Schema<
   Extract<DispatchMessage, { type: "dispatch.requested" }>

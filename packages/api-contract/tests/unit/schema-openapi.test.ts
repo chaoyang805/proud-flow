@@ -5,6 +5,8 @@ import {
   createOpenApiDocument,
   createRequirementRequestSchema,
   dispatchMessageSchema,
+  dispatchPushResponseSchema,
+  dispatchDoStatusResponseSchema,
   errorResponseSchema,
   localBootstrapResponseSchema,
   rotateTokenRequestSchema,
@@ -64,6 +66,18 @@ describe("api contract package", () => {
         requirementId: "REQ-000123",
         stage: "tech_design",
       }),
+      true,
+    );
+    assert.equal(
+      dispatchPushResponseSchema.is({
+        accepted: true,
+        requestId: "dispatch_req_1",
+        ack: { success: false, errorMessage: "Codex offline" },
+      }),
+      true,
+    );
+    assert.equal(
+      dispatchDoStatusResponseSchema.is({ online: false, connectionCount: 0 }),
       true,
     );
     assert.equal(

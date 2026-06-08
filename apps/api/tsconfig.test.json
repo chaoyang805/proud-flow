@@ -3,8 +3,14 @@
   "compilerOptions": {
     "rootDir": ".",
     "types": [
-      "node"
+      "node",
+      "@cloudflare/workers-types"
     ],
+    "paths": {
+      "cloudflare:workers": [
+        "./tests/mocks/cloudflare-workers.ts"
+      ]
+    },
     "noEmit": true,
     "module": "ESNext",
     "moduleResolution": "Bundler"

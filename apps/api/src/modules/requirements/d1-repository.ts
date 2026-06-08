@@ -18,20 +18,33 @@ export class D1RequirementRepository implements IRequirementRepository {
   private requirementCounter = 0;
   private artifactCounter = 0;
   private tokenCounter = 0;
-  private initPromise: Promise<void>;
+  private initPromise: Promise<void> | undefined;
 
-  constructor(private readonly db: D1Database) {
-    this.initPromise = this.initialize();
+  constructor(private readonly db: D1Database) {}
+
+  async start(): Promise<void> {
+    if (!this.initPromise) {
+      this.initPromise = this.initialize();
+    }
+    await this.initPromise;
   }
 
-  async ready(): Promise<void> { await this.initPromise; }
+  async ready(): Promise<void> {
+    await this.start();
+  }
 
   private async initialize(): Promise<void> {
     console.log("[d1-repo] initializing D1 repository...");
-    await this.ensureSchema();
-    await this.loadTokens();
-    await this.loadCounters();
-    console.log(`[d1-repo] initialized (${this.requirementCounter} requirements, ${this.tokenCounter} tokens)`);
+    try {
+      await this.ensureSchema();
+      await this.loadTokens();
+      await this.loadCounters();
+      console.log(`[d1-repo] initialized (${this.requirementCounter} requirements, ${this.tokenCounter} tokens)`);
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      console.error(`[d1-repo] initialization failed: ${msg}`);
+      throw error;
+    }
   }
 
   private async ensureSchema(): Promise<void> {
