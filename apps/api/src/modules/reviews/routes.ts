@@ -6,15 +6,21 @@ export async function handleReviewsRoute(
   pathname: string,
   service: ReviewsService,
 ): Promise<Response | undefined> {
-  const approveMatch = pathname.match(
+  let approveMatch = pathname.match(
     /^\/api\/requirements\/(REQ-\d{6})\/reviews\/approve$/,
   );
+  if (!approveMatch) {
+    approveMatch = pathname.match(/^\/api\/reviews\/(REQ-\d{6})\/approve$/);
+  }
   if (approveMatch && request.method === "POST") {
     return jsonResponse({ requirement: await service.approve(approveMatch[1]) });
   }
-  const rollbackMatch = pathname.match(
+  let rollbackMatch = pathname.match(
     /^\/api\/requirements\/(REQ-\d{6})\/reviews\/rollback$/,
   );
+  if (!rollbackMatch) {
+    rollbackMatch = pathname.match(/^\/api\/reviews\/(REQ-\d{6})\/rollback$/);
+  }
   if (rollbackMatch && request.method === "POST") {
     return jsonResponse({
       requirement: await service.rollback(rollbackMatch[1], await request.json()),

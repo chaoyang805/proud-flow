@@ -27,7 +27,7 @@ export async function handleSkillsRoute(
     return jsonResponse(await service.getTaskContext(requirementId));
   }
 
-  if (suffix === "/status/start" && request.method === "POST") {
+  if ((suffix === "/status/start" || suffix === "/start-stage") && request.method === "POST") {
     return jsonResponse(
       await service.startStage(requirementId, await request.json()),
     );
@@ -47,13 +47,13 @@ export async function handleSkillsRoute(
     );
   }
 
-  if (suffix === "/complete-stage" && request.method === "POST") {
+  if ((suffix === "/complete-stage" || suffix === "/status/complete-stage") && request.method === "POST") {
     return jsonResponse(
       await service.completeStage(requirementId, await request.json()),
     );
   }
 
-  if (suffix === "/fail-stage" && request.method === "POST") {
+  if ((suffix === "/fail-stage" || suffix === "/status/fail-stage") && request.method === "POST") {
     return jsonResponse(await service.failStage(requirementId, await request.json()));
   }
 
