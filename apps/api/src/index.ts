@@ -12,7 +12,9 @@ import { handleArtifactsRoute } from "./modules/artifacts/routes";
 import { handleDispatchRoute } from "./modules/dispatch/routes";
 import { LocalApiService } from "./modules/local/service";
 import { handleLocalRoute } from "./modules/local/routes";
-import { InMemoryRequirementRepository } from "./modules/requirements/repository";
+import { InMemoryRequirementRepository, IRequirementRepository } from "./modules/requirements/repository";
+import { RealtimeHub } from "./modules/realtime/hub";
+import { D1RequirementRepository } from "./modules/requirements/d1-repository";
 import { RequirementsService } from "./modules/requirements/service";
 import { handleRequirementsRoute } from "./modules/requirements/routes";
 import { handleRealtimeRoute } from "./modules/realtime/routes";
@@ -23,7 +25,7 @@ import { handleSkillsRoute } from "./modules/skills/routes";
 import { handleWorkflowRoute } from "./modules/workflow/routes";
 
 export interface ApiAppOptions {
-  repository?: InMemoryRequirementRepository;
+  repository?: IRequirementRepository;
 }
 
 function corsHeaders(): Record<string, string> {
@@ -48,16 +50,39 @@ function withCors(response: Response): Response {
 }
 
 export function createApiApp(options: ApiAppOptions = {}) {
-  const repository = options.repository ?? new InMemoryRequirementRepository();
+  function buildRepository(env: ApiEnv): IRequirementRepository {
+    if (options.repository) return options.repository;
+    const db = (env as any).DB;
+    if (db) {
+      console.log("[api] using D1RequirementRepository (D1 available)");
+      return new D1RequirementRepository(db);
+    }
+    console.log("[api] using InMemoryRequirementRepository (no D1)");
+    return new InMemoryRequirementRepository();
+  }
+
+  let repository: IRequirementRepository | undefined;
+  const hub = new RealtimeHub();
 
   return {
-    repository,
+    hub,
+    get repository(): IRequirementRepository {
+      if (!repository) {
+        console.log("[api] repository accessed before fetch, using InMemory fallback");
+        repository = new InMemoryRequirementRepository();
+      }
+      return repository;
+    },
     async fetch(request: Request, env: ApiEnv = {}): Promise<Response> {
+      if (!repository) repository = buildRepository(env);
+      const url = new URL(request.url);
+      const start = Date.now();
+      console.log(`[api] --> ${request.method} ${url.pathname}${url.search ? url.search : ""}`);
       if (request.method === "OPTIONS") {
+        console.log(`[api] <-- 204 OPTIONS (${Date.now() - start}ms)`);
         return new Response(null, { status: 204, headers: corsHeaders() });
       }
       try {
-        const url = new URL(request.url);
         const requirements = new RequirementsService(repository);
         const reviews = new ReviewsService(repository);
         const artifacts = new ArtifactsService(
@@ -76,8 +101,8 @@ export function createApiApp(options: ApiAppOptions = {}) {
             skills,
             repository,
           )) ??
-          (await handleDispatchRoute(request, url.pathname, env, repository)) ??
-          (await handleRealtimeRoute(request, url.pathname, env, repository)) ??
+          (await handleDispatchRoute(request, url.pathname, env, repository, hub)) ??
+          (await handleRealtimeRoute(request, url.pathname, env, hub)) ??
           (await requireUserToken(request, env).then(() => undefined)) ??
           (await handleRequirementsRoute(
             request,
@@ -88,9 +113,17 @@ export function createApiApp(options: ApiAppOptions = {}) {
           (await handleArtifactsRoute(request, url.pathname, artifacts)) ??
           (await handleWorkflowRoute(request, url.pathname, repository));
 
-        if (response) return withCors(response);
+        if (response) {
+          console.log(`[api] <-- ${response.status} ${request.method} ${url.pathname} (${Date.now() - start}ms)`);
+          return withCors(response);
+        }
+        console.log(`[api] <-- 404 ${request.method} ${url.pathname} (${Date.now() - start}ms)`);
         return withCors(errorResponse(new ApiError(404, "NOT_FOUND", "Route not found")));
       } catch (error) {
+        const msg = error instanceof Error ? error.message : String(error);
+        console.error(`[api] ERROR: ${msg}`, error instanceof Error ? error.stack : '');
+        const status = error instanceof ApiError ? error.status : 500;
+        console.log(`[api] <-- ${status} ${request.method} ${url.pathname} (${Date.now() - start}ms)`);
         return withCors(errorResponse(toApiError(error)));
       }
     },

@@ -10,14 +10,14 @@ export async function handleReviewsRoute(
     /^\/api\/requirements\/(REQ-\d{6})\/reviews\/approve$/,
   );
   if (approveMatch && request.method === "POST") {
-    return jsonResponse({ requirement: service.approve(approveMatch[1]) });
+    return jsonResponse({ requirement: await service.approve(approveMatch[1]) });
   }
   const rollbackMatch = pathname.match(
     /^\/api\/requirements\/(REQ-\d{6})\/reviews\/rollback$/,
   );
   if (rollbackMatch && request.method === "POST") {
     return jsonResponse({
-      requirement: service.rollback(rollbackMatch[1], await request.json()),
+      requirement: await service.rollback(rollbackMatch[1], await request.json()),
     });
   }
   return undefined;

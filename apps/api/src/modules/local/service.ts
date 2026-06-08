@@ -9,12 +9,12 @@ import type { TokenType } from "@proud-flow/domain";
 import type { ApiEnv } from "../../env";
 import { requireBootstrapToken } from "../../middleware/auth";
 import { hashToken } from "../auth/token-service";
-import type { InMemoryRequirementRepository } from "../requirements/repository";
+import type { IRequirementRepository } from "../requirements/repository";
 
 type ManagedTokenType = Extract<TokenType, "skill" | "dispatcher" | "local">;
 
 export class LocalApiService {
-  constructor(private readonly repository: InMemoryRequirementRepository) {}
+  constructor(private readonly repository: IRequirementRepository) {}
 
   async bootstrap(input: unknown, env: ApiEnv): Promise<LocalBootstrapResponse> {
     const request = localBootstrapRequestSchema.parse(input);

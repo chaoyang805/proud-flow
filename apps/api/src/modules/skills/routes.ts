@@ -1,7 +1,7 @@
 import type { ApiEnv } from "../../env";
 import { requireSkillToken } from "../../middleware/auth";
 import { jsonResponse } from "../../middleware/error";
-import type { InMemoryRequirementRepository } from "../requirements/repository";
+import type { IRequirementRepository } from "../requirements/repository";
 import type { SkillsApiService } from "./service";
 
 export async function handleSkillsRoute(
@@ -9,7 +9,7 @@ export async function handleSkillsRoute(
   pathname: string,
   env: ApiEnv,
   service: SkillsApiService,
-  repository: InMemoryRequirementRepository,
+  repository: IRequirementRepository,
 ): Promise<Response | undefined> {
   const match = pathname.match(/^\/api\/skills\/requirements\/(REQ-\d{6})(.*)$/);
   if (!match) return undefined;
@@ -20,22 +20,22 @@ export async function handleSkillsRoute(
   const suffix = match[2] || "";
 
   if (suffix === "" && request.method === "GET") {
-    return jsonResponse(service.getRequirement(requirementId));
+    return jsonResponse(await service.getRequirement(requirementId));
   }
 
   if (suffix === "/task-context" && request.method === "GET") {
-    return jsonResponse(service.getTaskContext(requirementId));
+    return jsonResponse(await service.getTaskContext(requirementId));
   }
 
   if (suffix === "/status/start" && request.method === "POST") {
     return jsonResponse(
-      service.startStage(requirementId, await request.json()),
+      await service.startStage(requirementId, await request.json()),
     );
   }
 
   if (suffix === "/artifacts" && request.method === "POST") {
     return jsonResponse(
-      service.attachArtifact(requirementId, await request.json()),
+      await service.attachArtifact(requirementId, await request.json()),
       { status: 201 },
     );
   }
@@ -49,16 +49,16 @@ export async function handleSkillsRoute(
 
   if (suffix === "/complete-stage" && request.method === "POST") {
     return jsonResponse(
-      service.completeStage(requirementId, await request.json()),
+      await service.completeStage(requirementId, await request.json()),
     );
   }
 
   if (suffix === "/fail-stage" && request.method === "POST") {
-    return jsonResponse(service.failStage(requirementId, await request.json()));
+    return jsonResponse(await service.failStage(requirementId, await request.json()));
   }
 
   if (suffix === "/notes" && request.method === "POST") {
-    return jsonResponse(service.addNote(requirementId, await request.json()), {
+    return jsonResponse(await service.addNote(requirementId, await request.json()), {
       status: 201,
     });
   }

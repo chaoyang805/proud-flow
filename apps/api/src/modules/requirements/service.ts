@@ -6,32 +6,32 @@ import {
 } from "@proud-flow/api-contract";
 import type { Requirement } from "@proud-flow/domain";
 import { ApiError } from "../../middleware/error";
-import type { InMemoryRequirementRepository } from "./repository";
+import type { IRequirementRepository } from "./repository";
 
 export class RequirementsService {
-  constructor(private readonly repository: InMemoryRequirementRepository) {}
+  constructor(private readonly repository: IRequirementRepository) {}
 
-  create(input: unknown): Requirement {
+  async create(input: unknown): Promise<Requirement> {
     const request: CreateRequirementRequest =
       createRequirementRequestSchema.parse(input);
     return this.repository.createRequirement(request);
   }
 
-  list(): Requirement[] {
+  async list(): Promise<Requirement[]> {
     return this.repository.listRequirements();
   }
 
-  get(id: string): Requirement {
-    const requirement = this.repository.getRequirement(id);
+  async get(id: string): Promise<Requirement> {
+    const requirement = await this.repository.getRequirement(id);
     if (!requirement)
       throw new ApiError(404, "NOT_FOUND", "Requirement not found");
     return requirement;
   }
 
-  update(id: string, input: unknown): Requirement {
+  async update(id: string, input: unknown): Promise<Requirement> {
     const request: UpdateRequirementRequest =
       updateRequirementRequestSchema.parse(input);
-    const existing = this.get(id);
+    const existing = await this.get(id);
     if (existing.status !== "planning") {
       throw new ApiError(
         409,
@@ -39,7 +39,7 @@ export class RequirementsService {
         "Only planning requirements can be edited",
       );
     }
-    const updated = this.repository.updateRequirement(id, request);
+    const updated = await this.repository.updateRequirement(id, request);
     if (!updated) throw new ApiError(404, "NOT_FOUND", "Requirement not found");
     return updated;
   }

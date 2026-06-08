@@ -10,11 +10,11 @@ export async function handleArtifactsRoute(
     /^\/api\/requirements\/(REQ-\d{6})\/artifacts$/,
   );
   if (collectionMatch && request.method === "GET") {
-    return jsonResponse({ items: service.list(collectionMatch[1]) });
+    return jsonResponse({ items: await service.list(collectionMatch[1]) });
   }
   if (collectionMatch && request.method === "POST") {
     return jsonResponse(
-      service.create(collectionMatch[1], await request.json()),
+      await service.create(collectionMatch[1], await request.json()),
       { status: 201 },
     );
   }
@@ -31,7 +31,7 @@ export async function handleArtifactsRoute(
     /^\/api\/requirements\/(REQ-\d{6})\/archive$/,
   );
   if (archiveMatch && request.method === "POST") {
-    service.archive(archiveMatch[1]);
+    await service.archive(archiveMatch[1]);
     return jsonResponse({ archived: true });
   }
   return undefined;

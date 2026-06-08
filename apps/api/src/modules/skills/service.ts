@@ -12,22 +12,22 @@ import {
 } from "@proud-flow/domain";
 import { ApiError } from "../../middleware/error";
 import type { ArtifactsService } from "../artifacts/service";
-import type { InMemoryRequirementRepository } from "../requirements/repository";
+import type { IRequirementRepository } from "../requirements/repository";
 import { completeAiStage, startAiStage } from "../workflow/state-machine";
 
 export class SkillsApiService {
   constructor(
-    private readonly repository: InMemoryRequirementRepository,
+    private readonly repository: IRequirementRepository,
     private readonly artifacts: ArtifactsService,
   ) {}
 
-  getRequirement(requirementId: string) {
+  async getRequirement(requirementId: string) {
     return this.requireRequirement(requirementId);
   }
 
-  getTaskContext(requirementId: string): TaskContextResponse {
-    const requirement = this.requireRequirement(requirementId);
-    const artifacts = this.repository.listArtifacts(requirementId);
+  async getTaskContext(requirementId: string): Promise<TaskContextResponse> {
+    const requirement = await this.requireRequirement(requirementId);
+    const artifacts = await this.repository.listArtifacts(requirementId);
     return {
       requirement,
       currentArtifacts: {
@@ -45,42 +45,42 @@ export class SkillsApiService {
     };
   }
 
-  startStage(requirementId: string, input: unknown) {
+  async startStage(requirementId: string, input: unknown) {
     const request = startStageRequestSchema.parse(input);
-    const requirement = this.requireRequirement(requirementId);
+    const requirement = await this.requireRequirement(requirementId);
     const status = startAiStage(requirement, request.stage);
-    return { requirement: this.repository.updateRequirement(requirementId, { status }) };
+    return { requirement: await this.repository.updateRequirement(requirementId, { status }) };
   }
 
-  attachArtifact(requirementId: string, input: unknown) {
+  async attachArtifact(requirementId: string, input: unknown) {
     return this.artifacts.create(requirementId, input);
   }
 
-  uploadArtifact(requirementId: string, input: unknown) {
+  async uploadArtifact(requirementId: string, input: unknown) {
     return this.artifacts.upload(requirementId, input);
   }
 
-  completeStage(requirementId: string, input: unknown) {
+  async completeStage(requirementId: string, input: unknown) {
     const request = completeStageRequestSchema.parse(input);
-    const requirement = this.requireRequirement(requirementId);
+    const requirement = await this.requireRequirement(requirementId);
     const status = completeAiStage(
       requirement,
       request.stage,
-      this.repository.listArtifacts(requirementId),
+      await this.repository.listArtifacts(requirementId),
     );
-    return { requirement: this.repository.updateRequirement(requirementId, { status }) };
+    return { requirement: await this.repository.updateRequirement(requirementId, { status }) };
   }
 
-  failStage(requirementId: string, input: unknown) {
+  async failStage(requirementId: string, input: unknown) {
     const request = failStageRequestSchema.parse(input);
     return {
-      requirement: this.requireRequirement(requirementId),
+      requirement: await this.requireRequirement(requirementId),
       stage: request.stage,
       message: request.message,
     };
   }
 
-  addNote(requirementId: string, input: unknown) {
+  async addNote(requirementId: string, input: unknown) {
     const request = addNoteRequestSchema.parse(input);
     return this.artifacts.create(requirementId, {
       type: "note",
@@ -89,8 +89,8 @@ export class SkillsApiService {
     });
   }
 
-  private requireRequirement(requirementId: string) {
-    const requirement = this.repository.getRequirement(requirementId);
+  private async requireRequirement(requirementId: string) {
+    const requirement = await this.repository.getRequirement(requirementId);
     if (!requirement)
       throw new ApiError(404, "NOT_FOUND", "Requirement not found");
     return requirement;

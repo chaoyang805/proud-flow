@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createApiApp, hashToken } from "../../apps/api/src/index";
+import { createApiApp, hashToken } from "../../apps/api/src/test-utils";
 import {
   createDaemon,
   createMemoryCliRuntime,

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createApiApp, hashToken } from "../../src/test-utils";
 import { handleRealtimeRoute } from "../../src/modules/realtime/routes";
+import { RealtimeHub } from "../../src/modules/realtime/hub";
 
 describe("realtime WebSocket auth", () => {
   it("ignores non-WS paths", async () => {
@@ -9,7 +10,7 @@ describe("realtime WebSocket auth", () => {
       new Request("https://api.test/api/requirements"),
       "/api/requirements",
       {},
-      app.repository,
+      app.hub,
     );
     expect(response).toBeUndefined();
   });

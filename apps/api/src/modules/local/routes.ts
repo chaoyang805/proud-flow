@@ -1,7 +1,7 @@
 import type { ApiEnv } from "../../env";
 import { requireLocalToken } from "../../middleware/auth";
 import { jsonResponse } from "../../middleware/error";
-import type { InMemoryRequirementRepository } from "../requirements/repository";
+import type { IRequirementRepository } from "../requirements/repository";
 import { createSkillManifest } from "./skill-manifest";
 import { LocalApiService } from "./service";
 
@@ -10,7 +10,7 @@ export async function handleLocalRoute(
   pathname: string,
   env: ApiEnv,
   service: LocalApiService,
-  repository: InMemoryRequirementRepository,
+  repository: IRequirementRepository,
 ): Promise<Response | undefined> {
   if (pathname === "/api/local/bootstrap" && request.method === "POST") {
     const body = await service.bootstrap(await request.json(), env);

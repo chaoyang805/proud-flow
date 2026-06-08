@@ -6,25 +6,25 @@ import {
 } from "@proud-flow/api-contract";
 import type { Artifact } from "@proud-flow/domain";
 import { ApiError } from "../../middleware/error";
-import type { InMemoryRequirementRepository } from "../requirements/repository";
+import type { IRequirementRepository } from "../requirements/repository";
 import type { ArtifactStorage } from "./storage";
 import { archiveRequirement } from "../workflow/state-machine";
 
 export class ArtifactsService {
   constructor(
-    private readonly repository: InMemoryRequirementRepository,
+    private readonly repository: IRequirementRepository,
     private readonly storage: ArtifactStorage,
   ) {}
 
-  list(requirementId: string): Artifact[] {
-    this.requireRequirement(requirementId);
+  async list(requirementId: string): Promise<Artifact[]> {
+    await this.requireRequirement(requirementId);
     return this.repository.listArtifacts(requirementId);
   }
 
-  create(requirementId: string, input: unknown): Artifact {
+  async create(requirementId: string, input: unknown): Promise<Artifact> {
     const request: CreateArtifactRequest =
       createArtifactRequestSchema.parse(input);
-    const requirement = this.requireRequirement(requirementId);
+    const requirement = await this.requireRequirement(requirementId);
     return this.repository.createArtifact({
       requirementId,
       requirementVersion: requirement.version,
@@ -38,7 +38,7 @@ export class ArtifactsService {
   async upload(requirementId: string, input: unknown): Promise<Artifact> {
     const request: UploadArtifactRequest =
       uploadArtifactRequestSchema.parse(input);
-    const requirement = this.requireRequirement(requirementId);
+    const requirement = await this.requireRequirement(requirementId);
     const url = await this.storage.upload(
       requirementId,
       request.fileName,
@@ -54,16 +54,16 @@ export class ArtifactsService {
     });
   }
 
-  archive(requirementId: string): Artifact[] {
-    const requirement = this.requireRequirement(requirementId);
-    const artifacts = this.repository.listArtifacts(requirementId);
+  async archive(requirementId: string): Promise<Artifact[]> {
+    const requirement = await this.requireRequirement(requirementId);
+    const artifacts = await this.repository.listArtifacts(requirementId);
     const status = archiveRequirement(requirement, artifacts);
-    this.repository.updateRequirement(requirementId, { status });
+    await this.repository.updateRequirement(requirementId, { status });
     return artifacts;
   }
 
-  private requireRequirement(requirementId: string) {
-    const requirement = this.repository.getRequirement(requirementId);
+  private async requireRequirement(requirementId: string) {
+    const requirement = await this.repository.getRequirement(requirementId);
     if (!requirement)
       throw new ApiError(404, "NOT_FOUND", "Requirement not found");
     return requirement;

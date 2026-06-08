@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createApiApp, hashToken } from "../../src/test-utils";
 import { handleDispatchRoute } from "../../src/modules/dispatch/routes";
+import { RealtimeHub } from "../../src/modules/realtime/hub";
 
 async function readJson(response: Response) {
   return response.json();
@@ -30,6 +31,7 @@ describe("dispatch WebSocket auth route", () => {
       "/api/requirements",
       {},
       app.repository,
+      app.hub,
     );
     expect(response).toBeUndefined();
   });

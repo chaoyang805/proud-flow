@@ -4,7 +4,7 @@ import {
   readBearerToken,
   verifyTokenHash,
 } from "../modules/auth/token-service";
-import type { InMemoryRequirementRepository } from "../modules/requirements/repository";
+import type { IRequirementRepository } from "../modules/requirements/repository";
 
 function readToken(request: Request): string | undefined {
   const fromHeader = readBearerToken(request.headers);
@@ -46,7 +46,7 @@ export async function requireBootstrapToken(
 export async function requireSkillToken(
   request: Request,
   env: ApiEnv,
-  repository: InMemoryRequirementRepository,
+  repository: IRequirementRepository,
 ): Promise<void> {
   await requireTypedToken(request, env, [
     ...parseHashList(env.SKILL_TOKEN_HASHES),
@@ -57,7 +57,7 @@ export async function requireSkillToken(
 export async function requireLocalToken(
   request: Request,
   env: ApiEnv,
-  repository: InMemoryRequirementRepository,
+  repository: IRequirementRepository,
 ): Promise<void> {
   await requireTypedToken(request, env, [
     ...parseHashList(env.LOCAL_TOKEN_HASHES),
@@ -68,7 +68,7 @@ export async function requireLocalToken(
 export async function requireDispatcherToken(
   request: Request,
   env: ApiEnv,
-  repository: InMemoryRequirementRepository,
+  repository: IRequirementRepository,
 ): Promise<void> {
   await requireTypedToken(request, env, [
     ...parseHashList(env.DISPATCHER_TOKEN_HASHES),
@@ -81,7 +81,7 @@ async function requireTypedToken(
   env: ApiEnv,
   hashes: readonly string[],
 ): Promise<void> {
-  const token = readBearerToken(request.headers);
+  const token = readToken(request);
   if (!token) throw new ApiError(401, "UNAUTHORIZED", "Missing bearer token");
   if (hashes.length === 0) {
     throw new ApiError(403, "FORBIDDEN", "Invalid bearer token");

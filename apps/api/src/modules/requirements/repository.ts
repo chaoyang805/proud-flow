@@ -1,8 +1,5 @@
 import type {
   Artifact,
-  DispatchAckedMessage,
-  DispatchRequestedMessage,
-  DispatchStage,
   Priority,
   RealtimeEvent,
   Requirement,
@@ -42,27 +39,27 @@ export interface ApiTokenRecord {
   revokedAt?: string;
 }
 
-export interface DispatchRequestRecord extends DispatchRequestedMessage {
-  status: "pending" | "acked";
-  ack?: DispatchAckedMessage;
-  createdAt: string;
-  updatedAt: string;
+export interface IRequirementRepository {
+  createRequirement(input: RequirementCreateInput): Promise<Requirement>;
+  listRequirements(): Promise<Requirement[]>;
+  getRequirement(id: string): Promise<Requirement | undefined>;
+  updateRequirement(id: string, input: RequirementUpdateInput): Promise<Requirement | undefined>;
+  createArtifact(input: ArtifactCreateInput): Promise<Artifact>;
+  listArtifacts(requirementId: string): Promise<Artifact[]>;
+  createApiToken(input: { tokenHash: string; tokenType: Extract<TokenType, "skill" | "dispatcher" | "local">; machineName?: string }): ApiTokenRecord;
+  listActiveApiTokenHashes(tokenType: Extract<TokenType, "skill" | "dispatcher" | "local">): string[];
+  revokeApiTokens(tokenType: Extract<TokenType, "skill" | "dispatcher" | "local">): void;
 }
 
-export class InMemoryRequirementRepository {
+export class InMemoryRequirementRepository implements IRequirementRepository {
   private requirements = new Map<string, Requirement>();
   private artifacts = new Map<string, Artifact>();
   private apiTokens = new Map<string, ApiTokenRecord>();
-  private dispatchRequests = new Map<string, DispatchRequestRecord>();
-  private realtimeEvents: RealtimeEvent[] = [];
-  private wsClients: Array<(event: RealtimeEvent) => void> = [];
   private requirementCounter = 0;
   private artifactCounter = 0;
   private tokenCounter = 0;
-  private dispatchCounter = 0;
-  private eventCounter = 0;
 
-  createRequirement(input: RequirementCreateInput): Requirement {
+  async createRequirement(input: RequirementCreateInput): Promise<Requirement> {
     const now = new Date().toISOString();
     this.requirementCounter += 1;
     const requirement: Requirement = {
@@ -79,20 +76,18 @@ export class InMemoryRequirementRepository {
     return requirement;
   }
 
-  listRequirements(): Requirement[] {
-    return [...this.requirements.values()].sort((left, right) =>
-      left.id.localeCompare(right.id),
-    );
+  async listRequirements(): Promise<Requirement[]> {
+    return [...this.requirements.values()];
   }
 
-  getRequirement(id: string): Requirement | undefined {
+  async getRequirement(id: string): Promise<Requirement | undefined> {
     return this.requirements.get(id);
   }
 
-  updateRequirement(
+  async updateRequirement(
     id: string,
     input: RequirementUpdateInput,
-  ): Requirement | undefined {
+  ): Promise<Requirement | undefined> {
     const existing = this.requirements.get(id);
     if (!existing) return undefined;
     const updated: Requirement = {
@@ -101,19 +96,10 @@ export class InMemoryRequirementRepository {
       updatedAt: new Date().toISOString(),
     };
     this.requirements.set(id, updated);
-    if (input.status && input.status !== existing.status) {
-      this.recordRealtimeEvent({
-        type: "requirement.updated",
-        eventId: this.nextEventId(),
-        requirementId: id,
-        status: input.status,
-        message: `Requirement moved to ${input.status}`,
-      });
-    }
     return updated;
   }
 
-  createArtifact(input: ArtifactCreateInput): Artifact {
+  async createArtifact(input: ArtifactCreateInput): Promise<Artifact> {
     this.artifactCounter += 1;
     const artifact: Artifact = {
       id: `art_${this.artifactCounter.toString().padStart(6, "0")}`,
@@ -129,7 +115,7 @@ export class InMemoryRequirementRepository {
     return artifact;
   }
 
-  listArtifacts(requirementId: string): Artifact[] {
+  async listArtifacts(requirementId: string): Promise<Artifact[]> {
     return [...this.artifacts.values()].filter(
       (artifact) => artifact.requirementId === requirementId,
     );
@@ -171,78 +157,6 @@ export class InMemoryRequirementRepository {
     }
   }
 
-  createDispatchRequest(input: {
-    requirementId: string;
-    stage: DispatchStage;
-  }): DispatchRequestRecord {
-    this.dispatchCounter += 1;
-    const now = new Date().toISOString();
-    const requestId = `dispatch_req_${this.dispatchCounter
-      .toString()
-      .padStart(6, "0")}`;
-    const record: DispatchRequestRecord = {
-      type: "dispatch.requested",
-      requestId,
-      requirementId: input.requirementId,
-      stage: input.stage,
-      status: "pending",
-      createdAt: now,
-      updatedAt: now,
-    };
-    this.dispatchRequests.set(requestId, record);
-    return record;
-  }
 
-  getNextPendingDispatchRequest(): DispatchRequestRecord | undefined {
-    return [...this.dispatchRequests.values()]
-      .filter((request) => request.status === "pending")
-      .sort((left, right) => left.createdAt.localeCompare(right.createdAt))[0];
-  }
 
-  ackDispatchRequest(ack: DispatchAckedMessage): DispatchRequestRecord | undefined {
-    const existing = this.dispatchRequests.get(ack.requestId);
-    if (!existing) return undefined;
-    const updated: DispatchRequestRecord = {
-      ...existing,
-      status: "acked",
-      ack,
-      updatedAt: new Date().toISOString(),
-    };
-    this.dispatchRequests.set(ack.requestId, updated);
-    this.recordRealtimeEvent({
-      type: "dispatch.acked",
-      eventId: this.nextEventId(),
-      requirementId: existing.requirementId,
-      success: ack.success,
-      message: ack.success ? "Dispatch acknowledged" : (ack.errorMessage ?? "Dispatch failed"),
-    });
-    return updated;
-  }
-
-  listRealtimeEvents(): RealtimeEvent[] {
-    return [...this.realtimeEvents];
-  }
-
-  recordRealtimeEvent(event: RealtimeEvent): void {
-    this.realtimeEvents.push(event);
-    this.broadcastEvent(event);
-  }
-
-  registerWsClient(send: (event: RealtimeEvent) => void): () => void {
-    this.wsClients.push(send);
-    return () => {
-      this.wsClients = this.wsClients.filter((fn) => fn !== send);
-    };
-  }
-
-  private broadcastEvent(event: RealtimeEvent): void {
-    for (const send of this.wsClients) {
-      try { send(event); } catch { /* client disconnected */ }
-    }
-  }
-
-  private nextEventId(): string {
-    this.eventCounter += 1;
-    return `evt_${this.eventCounter.toString().padStart(6, "0")}`;
-  }
 }
