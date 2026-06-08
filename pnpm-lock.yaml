@@ -38,6 +38,9 @@ importers:
       '@proud-flow/domain':
         specifier: workspace:*
         version: link:../../packages/domain
+      itty-router:
+        specifier: ^5.0.23
+        version: 5.0.23
     devDependencies:
       '@cloudflare/workers-types':
         specifier: ^4.20260607.1
@@ -2234,6 +2237,9 @@ packages:
   istanbul-reports@3.2.0:
     resolution: {integrity: sha512-HGYWWS/ehqTV3xN10i23tkPkpH46MLCIMFNCaaKNavAXTF1RkqxawEPtnjnGZ6XKSInBKkiOA5BKS+aZiY3AvA==}
     engines: {node: '>=8'}
+
+  itty-router@5.0.23:
+    resolution: {integrity: sha512-i49WU+SNPrwOZA4Z61En1RYd5h2Lcqa+5IvCpMrNi4dxymzJK15ozUUnRrWIUAv95Zamd4eJPAot2UvHRrQg7w==}
 
   jackspeak@4.2.3:
     resolution: {integrity: sha512-ykkVRwrYvFm1nb2AJfKKYPr0emF6IiXDYUaFx4Zn9ZuIH7MrzEZ3sD5RlqGXNRpHtvUHJyOnCEFxOlNDtGo7wg==}
@@ -5337,6 +5343,8 @@ snapshots:
     dependencies:
       html-escaper: 2.0.2
       istanbul-lib-report: 3.0.1
+
+  itty-router@5.0.23: {}
 
   jackspeak@4.2.3:
     dependencies:

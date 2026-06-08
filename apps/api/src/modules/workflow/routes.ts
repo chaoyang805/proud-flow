@@ -1,55 +1,43 @@
+import { type IRequestStrict, Router, type RouterType } from "itty-router";
 import {
   completeStageRequestSchema,
   startStageRequestSchema,
-  type CompleteStageRequest,
-  type StartStageRequest,
 } from "@proud-flow/api-contract";
+import type { ApiEnv } from "../../env";
+import { requireUserToken } from "../../middleware/auth";
 import { ApiError, jsonResponse } from "../../middleware/error";
 import type { IRequirementRepository } from "../requirements/repository";
 import { completeAiStage, startAiStage } from "./state-machine";
 
-export async function handleWorkflowRoute(
-  request: Request,
-  pathname: string,
+export function installWorkflowModule(
+  router: RouterType,
   repository: IRequirementRepository,
-): Promise<Response | undefined> {
-  const startMatch = pathname.match(
-    /^\/api\/requirements\/(REQ-\d{6})\/workflow\/start-stage$/,
-  );
-  if (startMatch && request.method === "POST") {
-    const body: StartStageRequest = startStageRequestSchema.parse(
-      await request.json(),
-    );
-    const requirement = await requireRequirement(repository, startMatch[1]);
-    const status = startAiStage(requirement, body.stage);
-    const updated = await repository.updateRequirement(requirement.id, { status });
-    return jsonResponse({ requirement: updated });
-  }
-  const completeMatch = pathname.match(
-    /^\/api\/requirements\/(REQ-\d{6})\/workflow\/complete-stage$/,
-  );
-  if (completeMatch && request.method === "POST") {
-    const body: CompleteStageRequest = completeStageRequestSchema.parse(
-      await request.json(),
-    );
-    const requirement = await requireRequirement(repository, completeMatch[1]);
-    const status = completeAiStage(
-      requirement,
-      body.stage,
-      await repository.listArtifacts(requirement.id),
-    );
-    const updated = await repository.updateRequirement(requirement.id, { status });
-    return jsonResponse({ requirement: updated });
-  }
-  return undefined;
+) {
+  router
+    .post("/api/requirements/:id/workflow/start-stage", async (request: IRequestStrict, env: ApiEnv) => {
+      await requireUserToken(request, env);
+      const body = startStageRequestSchema.parse(await request.json());
+      const requirement = await requireRequirement(repository, request.params.id);
+      const status = startAiStage(requirement, body.stage);
+      const updated = await repository.updateRequirement(requirement.id, { status });
+      return jsonResponse({ requirement: updated });
+    })
+    .post("/api/requirements/:id/workflow/complete-stage", async (request: IRequestStrict, env: ApiEnv) => {
+      await requireUserToken(request, env);
+      const body = completeStageRequestSchema.parse(await request.json());
+      const requirement = await requireRequirement(repository, request.params.id);
+      const status = completeAiStage(
+        requirement,
+        body.stage,
+        await repository.listArtifacts(requirement.id),
+      );
+      const updated = await repository.updateRequirement(requirement.id, { status });
+      return jsonResponse({ requirement: updated });
+    });
 }
 
-async function requireRequirement(
-  repository: IRequirementRepository,
-  id: string,
-) {
+async function requireRequirement(repository: IRequirementRepository, id: string) {
   const requirement = await repository.getRequirement(id);
-  if (!requirement)
-    throw new ApiError(404, "NOT_FOUND", "Requirement not found");
+  if (!requirement) throw new ApiError(404, "NOT_FOUND", "Requirement not found");
   return requirement;
 }

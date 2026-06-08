@@ -3,7 +3,6 @@ import type { DispatchRequestedMessage, RealtimeEvent } from "@proud-flow/domain
 export class RealtimeHub {
   private dispatchClients: Array<(msg: DispatchRequestedMessage) => void> = [];
   private realtimeClients: Array<(event: RealtimeEvent) => void> = [];
-  private realtimeEvents: RealtimeEvent[] = [];
 
   // --- Dispatch ---
 
@@ -40,12 +39,7 @@ export class RealtimeHub {
     };
   }
 
-  listRealtimeEvents(): RealtimeEvent[] {
-    return [...this.realtimeEvents];
-  }
-
   broadcast(event: RealtimeEvent): void {
-    this.realtimeEvents.push(event);
     console.log(`[realtime-hub] broadcasting event: type=${event.type} eventId=${event.eventId}`);
     for (const send of this.realtimeClients) {
       try { send(event); } catch { /* disconnected */ }

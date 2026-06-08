@@ -65,29 +65,6 @@ describe("RealtimeHub", () => {
     assert.equal(events.length, 1);
   });
 
-  it("listRealtimeEvents returns all broadcast events", () => {
-    const hub = new RealtimeHub();
-
-    hub.broadcast({
-      type: "dispatch.acked",
-      eventId: "evt_001",
-      requirementId: "REQ-000001",
-      success: true,
-      message: "Done",
-    });
-    hub.broadcast({
-      type: "requirement.updated",
-      eventId: "evt_002",
-      requirementId: "REQ-000001",
-      status: "tech-design",
-      message: "Started",
-    });
-
-    const events = hub.listRealtimeEvents();
-    assert.equal(events.length, 2);
-    assert.equal(events[0].type, "dispatch.acked");
-    assert.equal(events[1].type, "requirement.updated");
-  });
 
   it("broadcasts to multiple realtime clients simultaneously", () => {
     const hub = new RealtimeHub();
@@ -126,7 +103,5 @@ describe("RealtimeHub", () => {
       message: "OK",
     });
 
-    // event still recorded
-    assert.equal(hub.listRealtimeEvents().length, 1);
   });
 });

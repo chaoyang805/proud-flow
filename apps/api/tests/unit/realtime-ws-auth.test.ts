@@ -1,18 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { createApiApp, hashToken } from "../../src/test-utils";
-import { handleRealtimeRoute } from "../../src/modules/realtime/routes";
-import { RealtimeHub } from "../../src/modules/realtime/hub";
 
 describe("realtime WebSocket auth", () => {
   it("ignores non-WS paths", async () => {
     const app = createApiApp();
-    const response = await handleRealtimeRoute(
+    const response = await app.fetch(
       new Request("https://api.test/api/requirements"),
-      "/api/requirements",
       {},
-      app.hub,
     );
-    expect(response).toBeUndefined();
+    expect(response.status).toBe(200);
   });
 
   it("returns the right status codes based on WS upgrade and runtime", async () => {

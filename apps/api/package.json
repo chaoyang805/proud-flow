@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "@proud-flow/api-contract": "workspace:*",
-    "@proud-flow/domain": "workspace:*"
+    "@proud-flow/domain": "workspace:*",
+    "itty-router": "^5.0.23"
   }
 }

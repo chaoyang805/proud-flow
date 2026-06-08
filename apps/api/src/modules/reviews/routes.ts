@@ -1,30 +1,32 @@
+import { type IRequestStrict, Router, type RouterType } from "itty-router";
+import type { ApiEnv } from "../../env";
+import { requireUserToken } from "../../middleware/auth";
 import { jsonResponse } from "../../middleware/error";
 import type { ReviewsService } from "./service";
 
-export async function handleReviewsRoute(
-  request: Request,
-  pathname: string,
+export function installReviewsModule(
+  router: RouterType,
   service: ReviewsService,
-): Promise<Response | undefined> {
-  let approveMatch = pathname.match(
-    /^\/api\/requirements\/(REQ-\d{6})\/reviews\/approve$/,
-  );
-  if (!approveMatch) {
-    approveMatch = pathname.match(/^\/api\/reviews\/(REQ-\d{6})\/approve$/);
-  }
-  if (approveMatch && request.method === "POST") {
-    return jsonResponse({ requirement: await service.approve(approveMatch[1]) });
-  }
-  let rollbackMatch = pathname.match(
-    /^\/api\/requirements\/(REQ-\d{6})\/reviews\/rollback$/,
-  );
-  if (!rollbackMatch) {
-    rollbackMatch = pathname.match(/^\/api\/reviews\/(REQ-\d{6})\/rollback$/);
-  }
-  if (rollbackMatch && request.method === "POST") {
-    return jsonResponse({
-      requirement: await service.rollback(rollbackMatch[1], await request.json()),
+) {
+  router
+    .post("/api/requirements/:id/reviews/approve", async (request: IRequestStrict, env: ApiEnv) => {
+      await requireUserToken(request, env);
+      return jsonResponse({ requirement: await service.approve(request.params.id) });
+    })
+    .post("/api/reviews/:id/approve", async (request: IRequestStrict, env: ApiEnv) => {
+      await requireUserToken(request, env);
+      return jsonResponse({ requirement: await service.approve(request.params.id) });
+    })
+    .post("/api/requirements/:id/reviews/rollback", async (request: IRequestStrict, env: ApiEnv) => {
+      await requireUserToken(request, env);
+      return jsonResponse({
+        requirement: await service.rollback(request.params.id, await request.json()),
+      });
+    })
+    .post("/api/reviews/:id/rollback", async (request: IRequestStrict, env: ApiEnv) => {
+      await requireUserToken(request, env);
+      return jsonResponse({
+        requirement: await service.rollback(request.params.id, await request.json()),
+      });
     });
-  }
-  return undefined;
 }

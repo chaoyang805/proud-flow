@@ -1,38 +1,29 @@
+import { type IRequestStrict, Router, type RouterType } from "itty-router";
+import type { ApiEnv } from "../../env";
+import { requireUserToken } from "../../middleware/auth";
 import { jsonResponse } from "../../middleware/error";
 import type { ArtifactsService } from "./service";
 
-export async function handleArtifactsRoute(
-  request: Request,
-  pathname: string,
+export function installArtifactsModule(
+  router: RouterType,
   service: ArtifactsService,
-): Promise<Response | undefined> {
-  const collectionMatch = pathname.match(
-    /^\/api\/requirements\/(REQ-\d{6})\/artifacts$/,
-  );
-  if (collectionMatch && request.method === "GET") {
-    return jsonResponse({ items: await service.list(collectionMatch[1]) });
-  }
-  if (collectionMatch && request.method === "POST") {
-    return jsonResponse(
-      await service.create(collectionMatch[1], await request.json()),
-      { status: 201 },
-    );
-  }
-  const uploadMatch = pathname.match(
-    /^\/api\/requirements\/(REQ-\d{6})\/artifacts\/upload$/,
-  );
-  if (uploadMatch && request.method === "POST") {
-    return jsonResponse(
-      await service.upload(uploadMatch[1], await request.json()),
-      { status: 201 },
-    );
-  }
-  const archiveMatch = pathname.match(
-    /^\/api\/requirements\/(REQ-\d{6})\/archive$/,
-  );
-  if (archiveMatch && request.method === "POST") {
-    await service.archive(archiveMatch[1]);
-    return jsonResponse({ archived: true });
-  }
-  return undefined;
+) {
+  router
+    .get("/api/requirements/:id/artifacts", async (request: IRequestStrict, env: ApiEnv) => {
+      await requireUserToken(request, env);
+      return jsonResponse({ items: await service.list(request.params.id) });
+    })
+    .post("/api/requirements/:id/artifacts", async (request: IRequestStrict, env: ApiEnv) => {
+      await requireUserToken(request, env);
+      return jsonResponse(await service.create(request.params.id, await request.json()), { status: 201 });
+    })
+    .post("/api/requirements/:id/artifacts/upload", async (request: IRequestStrict, env: ApiEnv) => {
+      await requireUserToken(request, env);
+      return jsonResponse(await service.upload(request.params.id, await request.json()), { status: 201 });
+    })
+    .post("/api/requirements/:id/archive", async (request: IRequestStrict, env: ApiEnv) => {
+      await requireUserToken(request, env);
+      await service.archive(request.params.id);
+      return jsonResponse({ archived: true });
+    });
 }

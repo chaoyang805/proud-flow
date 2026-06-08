@@ -1,7 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { createApiApp, hashToken } from "../../src/test-utils";
-import { handleDispatchRoute } from "../../src/modules/dispatch/routes";
-import { RealtimeHub } from "../../src/modules/realtime/hub";
 
 async function readJson(response: Response) {
   return response.json();
@@ -24,16 +22,10 @@ function request(
 }
 
 describe("dispatch WebSocket auth route", () => {
-  it("ignores non-dispatch WebSocket paths", async () => {
+  it("returns 200 for GET /api/requirements without auth tokens", async () => {
     const app = createApiApp();
-    const response = await handleDispatchRoute(
-      new Request("https://api.test/api/requirements"),
-      "/api/requirements",
-      {},
-      app.repository,
-      app.hub,
-    );
-    expect(response).toBeUndefined();
+    const response = await request(app, "/api/requirements");
+    expect(response.status).toBe(200);
   });
 
   it("allows only dispatcher tokens to access the dispatch WebSocket endpoint", async () => {
@@ -110,5 +102,69 @@ describe("dispatch WebSocket auth route", () => {
       env,
     );
     expect(response.status).toBe(426);
+  });
+});
+
+describe("dispatch POST auth", () => {
+  it("requires user token for POST /api/requirements/:id/dispatch", async () => {
+    const app = createApiApp();
+    const userHash = await hashToken("pf_user_secret", "pepper");
+    const env = {
+      USER_TOKEN_HASHES: userHash,
+      TOKEN_HASH_SECRET: "pepper",
+    };
+
+    // Create a requirement first
+    const createResp = await readJson(
+      await request(
+        app,
+        "/api/requirements",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: "Bearer pf_user_secret" },
+          body: JSON.stringify({ title: "测试", description: "描述", priority: "high" }),
+        },
+        env,
+      ),
+    );
+
+    // Without token → 401
+    const noToken = await request(
+      app,
+      `/api/requirements/${createResp.id}/dispatch`,
+      { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ stage: "tech_design" }) },
+      env,
+    );
+    expect(noToken.status).toBe(401);
+
+    // With skill token → 403
+    const skillResp = await readJson(
+      await request(
+        app,
+        `/api/requirements/${createResp.id}/dispatch`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: "Bearer pf_skill_123" },
+          body: JSON.stringify({ stage: "tech_design" }),
+        },
+        env,
+      ),
+    );
+    expect(skillResp.error.code).toBe("FORBIDDEN");
+
+    // With user token → 503 (no daemon connected, but auth passes)
+    const userResp = await request(
+      app,
+      `/api/requirements/${createResp.id}/dispatch`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: "Bearer pf_user_secret" },
+        body: JSON.stringify({ stage: "tech_design" }),
+      },
+      env,
+    );
+    expect(userResp.status).toBe(503);
+    const userBody = await readJson(userResp);
+    expect(userBody.error.code).toBe("DISPATCHER_OFFLINE");
   });
 });
