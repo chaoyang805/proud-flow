@@ -45,6 +45,8 @@ function withCors(response: Response): Response {
 export function createApiApp(options: ApiAppOptions = {}) {
   let repository: IRequirementRepository | undefined;
   let repositoryBootstrap: Promise<IRequirementRepository> | undefined;
+  let router: RouterType | undefined;
+  let cachedArtifactBucket: ApiEnv["ARTIFACT_BUCKET"];
   const hub = new RealtimeHub();
 
   async function bootstrapRepository(env: ApiEnv): Promise<IRequirementRepository> {
@@ -72,7 +74,8 @@ export function createApiApp(options: ApiAppOptions = {}) {
     return repositoryBootstrap;
   }
 
-  function buildRouter(env: ApiEnv): RouterType {
+  function getRouter(env: ApiEnv): RouterType {
+    if (router && cachedArtifactBucket === env.ARTIFACT_BUCKET) return router;
     if (!repository) {
       throw new Error("Repository must be bootstrapped before building router");
     }
@@ -83,7 +86,8 @@ export function createApiApp(options: ApiAppOptions = {}) {
     const local = new LocalApiService(repository);
     const skills = new SkillsApiService(repository, artifacts);
 
-    const router = Router();
+    cachedArtifactBucket = env.ARTIFACT_BUCKET;
+    router = Router();
 
     // OPTIONS preflight
     router.options("*", () => new Response(null, { status: 204, headers: corsHeaders() }));
@@ -91,7 +95,7 @@ export function createApiApp(options: ApiAppOptions = {}) {
     router.get("/api/health", () => Response.json({ status: "ok" }));
 
     // Register all modules (each module handles its own auth)
-    installLocalModule(router, local, repository, env);
+    installLocalModule(router, local, repository);
     installDispatchModule(router, repository, hub);
     installRealtimeModule(router, hub);
     installSkillsModule(router, skills, repository);
@@ -122,8 +126,7 @@ export function createApiApp(options: ApiAppOptions = {}) {
 
       try {
         await bootstrapRepository(env);
-        const router = buildRouter(env);
-        const response = await router.fetch(request, env);
+        const response = await getRouter(env).fetch(request, env);
         console.log(`[api] <-- ${response.status} ${request.method} ${url.pathname} (${Date.now() - start}ms)`);
         return withCors(response);
       } catch (error) {

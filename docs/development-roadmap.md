@@ -18,7 +18,7 @@
 | P0 | Monorepo 基础 | 初始化工程结构、包管理、构建和质量工具 | done |
 | P1 | 公共包 | 定义领域类型、API contract、共享 client | done |
 | P2 | 后端核心 | 实现 D1 数据模型、状态机、需求和产物 API | done |
-| P3 | Skills API + Local API | 支持 CLI helper、token bootstrap、Skill manifest | done |
+| P3 | Skills API + Local API | 支持 CLI helper、token bootstrap | done |
 | P4 | CLI helper | 实现 `proud-flow` 初始化和 Skills API helper | done |
 | P5 | Daemon 派发 | 实现 WebSocket 连接、ACK、Codex Runner | done |
 | P6 | Skills | 实现三个 Codex Skills | done |
@@ -179,7 +179,7 @@
 - [x] `POST /api/local/bootstrap`
 - [x] `POST /api/local/tokens/rotate`
 - [x] `POST /api/local/tokens/revoke`
-- [x] `GET /api/local/skills/manifest`
+- [x] `GET /api/local/skills/manifest`（后改为 CLI 内置 Skill，已删除）
 - [x] 后端生成 `pf_skill_` token
 - [x] 后端生成 `pf_dispatcher_` token
 - [x] token 明文只返回一次
@@ -188,7 +188,7 @@
 
 - [x] token 只存 hash
 - [x] bootstrap 可返回 CLI 初始化所需 token
-- [x] manifest 包含 Skill 版本、下载地址、sha256 和兼容 CLI 版本
+- [x] CLI 内置 manifest 包含 Skill 版本、文件 sha256 和兼容 CLI 版本
 
 ## 7. P4 CLI Helper
 
@@ -258,8 +258,8 @@
 - [x] 实现 `skills/tech-design/SKILL.md`
 - [x] 实现 `skills/case-rundown/SKILL.md`
 - [x] 实现 `skills/development/SKILL.md`
-- [x] 实现 `skills/manifest.json`
-- [x] 实现 Skill 打包脚本
+- [x] 实现 `apps/cli/skills/manifest.json`（后迁入 CLI）
+- [x] 实现 Skill 打包脚本（后改为 CLI 内置，已删除独立流水线）
 - [x] 实现 `proud-flow skill install`
 - [x] 实现 `proud-flow skill update`
 - [x] 实现 `proud-flow skill status`
@@ -341,8 +341,7 @@
 - [x] 配置 Durable Objects
 - [x] 部署前端
 - [x] 发布 CLI 包
-- [x] 发布 Skill 包
-- [x] 配置 Skill manifest
+- [x] CLI 内置 Skill（`apps/cli/skills/`）
 - [x] 补充 README
 - [x] 补充本地开发文档
 - [x] 补充部署文档
@@ -447,8 +446,7 @@ web requirement detail + dispatch
 - [ ] 发布 production API Worker
 - [ ] 发布 production Web
 - [ ] 发布 CLI 包
-- [ ] 发布 Skill 包
-- [ ] 配置 production Skill manifest 静态资源地址
+- [ ] 确认 production CLI 包包含最新内置 Skill
 - [ ] 新机器可按文档完成 `proud-flow init`
 - [ ] production Web 可完成完整生命周期验收
 - [ ] production daemon 可完成 dispatch 和 ACK
@@ -476,3 +474,4 @@ web requirement detail + dispatch
 | 2026-06-05 | P9 发布准备 | done | 已实现 Wrangler dev/prod 配置、D1/R2/Durable Object bindings、Web prod API env、CLI bin 和 Node runtime、发布脚本、Skill manifest base URL 配置、README/本地开发/部署/故障排查文档；真实 Cloudflare resource id、secret、deploy/publish 按部署文档在目标账号执行 |
 | 2026-06-07 | 验收计划 | done | 明确本地验收先使用 InMemory repository；Cloudflare 环境验收前再实现 D1 repository、持久化测试和真实资源配置 |
 | 2026-06-07 | 本地验收入口 | done | 已补充 `pnpm dev:api`，以 Node dev server 启动 Worker fetch app 和 InMemory repository，并更新本地验收文档 |
+| 2026-06-08 | Skill 迁入 CLI | done | Skill 迁入 `apps/cli/skills/`，`init` 自动安装到 `workspacePath/.codex/skills/`，删除 API manifest 与根目录 skill 打包流水线 |

@@ -133,7 +133,6 @@ apps/api
       local-api
         routes.ts
         token-service.ts
-        skill-manifest.ts
       auth
         token-service.ts
       db
@@ -511,9 +510,9 @@ PROUD_FLOW_API_BASE_URL=http://localhost:8787
 
 ### 12.4 Skills
 
-- `skills/*` 打包为 tarball。
-- 上传到固定静态资源地址或 R2。
-- 后端 `/api/local/skills/manifest` 返回版本、下载地址、sha256 和兼容 CLI 版本。
+- Skill 源文件位于 `apps/cli/skills/`，随 CLI npm 包发布。
+- `proud-flow init` 安装到 `{workspacePath}/.codex/skills/`。
+- CLI 升级后运行 `proud-flow skill install` 同步版本。
 
 ## 13. 命名规范
 
@@ -549,7 +548,7 @@ PROUD_FLOW_API_BASE_URL=http://localhost:8787
 5. 建 `packages/api-client`。
 6. 建 `apps/web`，实现需求列表、详情、派发和 review。
 7. 建 `apps/cli`，实现 init、daemon、API helper、skill install。
-8. 建 `skills/*`，接入 CLI helper。
+8. 在 `apps/cli/skills/` 维护 Skill，接入 CLI helper。
 9. 串完整 E2E 流程。
 
 ## 15. 第一版暂不做

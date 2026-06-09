@@ -34,7 +34,7 @@ Run:
 proud-flow skill status --json
 ```
 
-If a download fails, verify `SKILL_MANIFEST_BASE_URL`, the static host, and the package sha256 values in `skills/manifest.json`. A sha mismatch means the package was rebuilt but the manifest was not updated.
+Verify that Skills exist under `{workspacePath}/.codex/skills/`, check the CLI version, and rerun `proud-flow skill install --force` after upgrading the CLI. A hash mismatch usually means the CLI package was built without regenerating the Skill manifest; rebuild with `pnpm --filter @proud-flow/cli build`.
 
 ## Web Cannot Reach API
 

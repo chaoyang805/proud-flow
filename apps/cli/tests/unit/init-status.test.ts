@@ -36,7 +36,18 @@ describe("CLI init and status", () => {
     );
     assert.equal(init.exitCode, 0);
     assert.match(init.stdout, /Initialized Proud Flow CLI/);
+    assert.match(init.stdout, /\.codex\/skills/);
     assert.equal(init.stdout.includes("pf_skill_secret"), false);
+
+    const workspacePath = process.cwd();
+    assert.match(
+      Buffer.from(
+        await runtime.readFile(
+          `${workspacePath}/.codex/skills/tech-design/SKILL.md`,
+        ),
+      ).toString("utf8"),
+      /get-task-context/,
+    );
 
     assert.equal(await runtime.keychain.getToken("skill"), "pf_skill_secret");
     assert.deepEqual(await runtime.store.readConfig(), {
@@ -81,11 +92,40 @@ describe("CLI init and status", () => {
     assert.match(authStatus.stdout, /Authenticated: yes/);
   });
 
+  it("does not install skills when bootstrap fails", async () => {
+    const runtime = createMemoryCliRuntime({
+      fetch: createMockFetch(() => ({
+        status: 401,
+        body: { error: { code: "FORBIDDEN", message: "invalid bootstrap" } },
+      })),
+    });
+
+    const init = await runCli(
+      ["init", "--env", "dev", "--bootstrap-token", "bad", "--machine-name", "mac"],
+      runtime,
+    );
+    assert.equal(init.exitCode, 1);
+    await assert.rejects(() =>
+      runtime.readFile(`${process.cwd()}/.codex/skills/tech-design/SKILL.md`),
+    );
+  });
+
   it("reports missing initialization", async () => {
     const runtime = createMemoryCliRuntime();
 
     const missingConfig = await runCli(["status", "--json"], runtime);
     assert.equal(missingConfig.exitCode, 1);
     assert.equal(JSON.parse(missingConfig.stderr).error.code, "INTERNAL_ERROR");
+  });
+
+  it("shows help without requiring a requirement id", async () => {
+    const runtime = createMemoryCliRuntime();
+
+    for (const args of [["--help"], ["-h"], []] as const) {
+      const result = await runCli(args, runtime);
+      assert.equal(result.exitCode, 0);
+      assert.match(result.stdout, /Proud Flow CLI/);
+      assert.match(result.stdout, /proud-flow init/);
+    }
   });
 });

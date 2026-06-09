@@ -14,7 +14,6 @@ import {
   rotateTokenRequestSchema,
   rotateTokenResponseSchema,
   revokeTokenRequestSchema,
-  skillManifestResponseSchema,
 } from "./local";
 import {
   createRequirementRequestSchema,
@@ -198,12 +197,6 @@ export const routeSpecs: RouteSpec[] = [
     path: "/api/local/tokens/revoke",
     summary: "Revoke local token",
     request: revokeTokenRequestSchema,
-  },
-  {
-    method: "get",
-    path: "/api/local/skills/manifest",
-    summary: "Get skill manifest",
-    response: skillManifestResponseSchema,
   },
 ];
 

@@ -4,13 +4,11 @@ import {
   rotateTokenRequestSchema,
   rotateTokenResponseSchema,
   revokeTokenRequestSchema,
-  skillManifestResponseSchema,
   type LocalBootstrapRequest,
   type LocalBootstrapResponse,
   type RotateTokenRequest,
   type RotateTokenResponse,
   type RevokeTokenRequest,
-  type SkillManifestResponse,
 } from "@proud-flow/api-contract";
 import type { ProudFlowHttpClient } from "./client";
 
@@ -43,14 +41,6 @@ export class LocalApiClient {
       path: "/api/local/tokens/revoke",
       requestSchema: revokeTokenRequestSchema,
       body,
-    });
-  }
-
-  getSkillManifest(): Promise<SkillManifestResponse> {
-    return this.http.request({
-      method: "GET",
-      path: "/api/local/skills/manifest",
-      responseSchema: skillManifestResponseSchema,
     });
   }
 }

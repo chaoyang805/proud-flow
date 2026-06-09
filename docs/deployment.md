@@ -67,13 +67,7 @@ The package exposes the `proud-flow` bin from `apps/cli/dist/bin.js`. A new mach
 
 ## Skill Packages
 
-Build Skill packages:
-
-```bash
-pnpm publish:skills
-```
-
-Upload generated Skill packages to the configured static asset host. The backend manifest uses `SKILL_MANIFEST_BASE_URL` to serve dev or production download URLs.
+Skills ship with the CLI npm package (`apps/cli/skills/`). Publish the CLI with `pnpm publish:cli`; users upgrade Skills by upgrading the CLI and running `proud-flow skill install`.
 
 ## Release Gate
 

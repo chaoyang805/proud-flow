@@ -9,8 +9,7 @@
     "head_sampling_rate": 1
   },
   "vars": {
-    "ENVIRONMENT": "dev",
-    "SKILL_MANIFEST_BASE_URL": "https://static-dev.proud-flow.example/skills"
+    "ENVIRONMENT": "dev"
   },
   "d1_databases": [
     {
@@ -47,8 +46,7 @@
     "dev": {
       "name": "proud-flow-api-dev",
       "vars": {
-        "ENVIRONMENT": "dev",
-        "SKILL_MANIFEST_BASE_URL": "https://static-dev.proud-flow.example/skills"
+        "ENVIRONMENT": "dev"
       },
       "d1_databases": [
         {
@@ -79,8 +77,7 @@
     "production": {
       "name": "proud-flow-api-prod",
       "vars": {
-        "ENVIRONMENT": "prod",
-        "SKILL_MANIFEST_BASE_URL": "https://static.proud-flow.example/skills"
+        "ENVIRONMENT": "prod"
       },
       "d1_databases": [
         {

@@ -102,7 +102,7 @@ backend
   reviews            人工 review
   ai-tasks           AI 任务
   artifacts          产物管理
-  local-api          本地 CLI 初始化、token 和 Skill manifest
+  local-api          本地 CLI 初始化与 token 管理（Skill 由 CLI 内置安装）
   notifications      通知
   skills-api         Skills 回写与上下文接口
 ```

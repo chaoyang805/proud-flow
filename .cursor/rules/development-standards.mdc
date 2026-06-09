@@ -40,7 +40,7 @@ CI 中将 `coverage/thresholds` 设为 80%，不达标阻塞合入。
 
 - `apps/*` — 可部署应用（api、web、cli）
 - `packages/*` — 共享库（domain、api-contract、api-client、config）
-- `skills/*` — Codex Skills
+- `apps/cli/skills/` — CLI 内置 Codex Skills
 - `docs/*` — 设计文档
 - `tests/e2e/*` — 端到端测试
 - `scripts/*` — 构建/质量脚本

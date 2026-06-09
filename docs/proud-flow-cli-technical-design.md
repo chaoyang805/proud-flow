@@ -75,8 +75,8 @@ local-cli
     stage-router           stage 到 Skill 指令映射
     codex-runner           Codex 调用适配
   skills
-    installer              安装 Skill 到 Codex Skill 目录
-    updater                manifest 对比与下载校验
+    bundled-manifest       读取包内 manifest
+    installer              复制到 workspacePath/.codex/skills
   logging
 ```
 
@@ -107,7 +107,7 @@ Skill 管理职责：
 
 - 安装平台内置 Skills。
 - 检查 Skill 版本。
-- 从固定环境的 manifest 下载并更新 Skill。
+- 从 CLI 内置 `skills/` 安装并更新 Skill。
 - 校验 Skill 包 hash。
 
 Local CLI / Daemon 不负责：
@@ -330,38 +330,22 @@ Codex Runner 是 daemon 内唯一与本地 Codex 交互的适配层。
 
 ## 11. Skill 安装和更新
 
-Skill 包由 CLI 从固定环境的 manifest 获取。
-
-manifest 获取：
+Skill 源文件内置在 CLI npm 包的 `apps/cli/skills/` 目录，随 CLI 发布。`proud-flow init` 成功后会自动安装到项目工作区：
 
 ```text
-GET /api/local/skills/manifest
+{config.workspacePath}/.codex/skills/
 ```
 
-manifest 示例：
-
-```json
-{
-  "version": "0.1.0",
-  "cliVersionRange": ">=0.1.0",
-  "skills": [
-    {
-      "name": "tech-design",
-      "version": "0.1.0",
-      "downloadUrl": "https://static.proud-flow.example/skills/tech-design-0.1.0.tgz",
-      "sha256": "..."
-    }
-  ]
-}
-```
+内置 manifest 在 CLI build 时生成到 `dist/package-skills/manifest.json`，列出每个 Skill 的文件路径与 sha256，不依赖后端 API 或静态下载地址。
 
 安装规则：
 
-- CLI 自动探测 Codex Skill 目录。
-- 下载后校验 sha256。
-- 安装前备份同名旧版本。
-- 检测到本地修改时，提示用户确认覆盖或跳过。
-- `skill status` 展示本地版本、远端版本和兼容性。
+- `init` 写 config 和 token 后自动调用 `skill install`。
+- 从包内 `skills/` 复制文件到 `workspacePath/.codex/skills/{name}/`。
+- 复制后校验 sha256，并写入 `.proud-flow-install.json` 记录。
+- 检测到本地修改时，`skill update` 默认跳过；`--force` 可覆盖。
+- `skill status` 展示本地版本、包内版本和 `modified` / `outdated` 状态。
+- CLI 升级后运行 `proud-flow skill install`（或 `update --force`）同步新版本。
 
 daemon 启动策略：
 
@@ -645,7 +629,7 @@ CLI helper 对 Codex 返回结构化错误：
 - stage command 必须来自白名单配置，不能直接执行后端传来的任意命令。
 - requirementId 只作为参数传入 Skill，必须做格式校验。
 - 本地 workspacePath 必须显式配置，不从远端消息动态指定。
-- Skill 包下载后必须校验 hash。
+- Skill 包复制后必须校验 hash。
 - 日志中不打印 token。
 
 ## 18. 测试策略
@@ -658,7 +642,7 @@ CLI helper 对 Codex 返回结构化错误：
 - stage 到命令映射。
 - requestId 去重。
 - Codex Runner 成功和失败结果映射。
-- Skill manifest 版本比较和 hash 校验。
+- 内置 Skill manifest 版本比较和 hash 校验。
 - artifact 类型与阶段必需产物映射。
 - Skill prompt 模板变量渲染。
 

@@ -17,7 +17,9 @@
     }
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json && tsc-alias -p tsconfig.json --resolve-full-paths --resolve-full-extension .js",
+    "skills:bundle": "node scripts/bundle-skills.mjs",
+    "build": "node scripts/build.mjs",
+    "pretest": "node scripts/bundle-skills.mjs",
     "publish:package": "pnpm build && pnpm pack --pack-destination ../../dist/releases",
     "typecheck": "tsc -p tsconfig.test.json --noEmit",
     "lint": "node ../../scripts/lint-workspace.mjs",

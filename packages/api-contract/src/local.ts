@@ -1,6 +1,5 @@
 import { tokenTypes, type TokenType } from "@proud-flow/domain";
 import {
-  arraySchema,
   enumSchema,
   objectSchema,
   stringSchema,
@@ -30,19 +29,6 @@ export interface RotateTokenResponse {
 
 export interface RevokeTokenRequest {
   tokenType: Extract<TokenType, "skill" | "dispatcher" | "local">;
-}
-
-export interface SkillManifestEntry {
-  name: "tech-design" | "case-rundown" | "development";
-  version: string;
-  downloadUrl: string;
-  sha256: string;
-}
-
-export interface SkillManifestResponse {
-  version: string;
-  cliVersionRange: string;
-  skills: SkillManifestEntry[];
 }
 
 export const localBootstrapRequestSchema: Schema<LocalBootstrapRequest> =
@@ -79,18 +65,3 @@ export const rotateTokenResponseSchema: Schema<RotateTokenResponse> =
 
 export const revokeTokenRequestSchema: Schema<RevokeTokenRequest> =
   rotateTokenRequestSchema;
-
-export const skillManifestEntrySchema: Schema<SkillManifestEntry> =
-  objectSchema({
-    name: enumSchema(["tech-design", "case-rundown", "development"] as const),
-    version: stringSchema({ minLength: 1 }),
-    downloadUrl: stringSchema({ minLength: 1 }),
-    sha256: stringSchema({ minLength: 1 }),
-  });
-
-export const skillManifestResponseSchema: Schema<SkillManifestResponse> =
-  objectSchema({
-    version: stringSchema({ minLength: 1 }),
-    cliVersionRange: stringSchema({ minLength: 1 }),
-    skills: arraySchema(skillManifestEntrySchema),
-  });

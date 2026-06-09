@@ -9,7 +9,12 @@ import { createMockCodexRunner } from "./daemon/codex-runner";
 import { createDaemon } from "./daemon/daemon";
 import { getBackendUrl, isEnvironment } from "./environment";
 import type { CliConfig, CliRuntime, StoredTokenType } from "./runtime";
-import { getSkillStatuses, installSkills } from "./skills/installer";
+import {
+  getSkillStatuses,
+  installSkills,
+  loadBundledManifest,
+  resolveSkillInstallRoot,
+} from "./skills/installer";
 import {
   pidPath,
   logPath,
@@ -51,8 +56,30 @@ export async function runCli(
   }
 }
 
+function printHelp(): string {
+  return `Proud Flow CLI
+
+Usage:
+  proud-flow init                       Initialize CLI
+  proud-flow status                     Show CLI status
+  proud-flow auth status|rotate|logout  Manage authentication
+  proud-flow skill install|update|status  Manage Skills
+  proud-flow daemon [status|stop|logs]  Manage dispatch daemon
+  proud-flow <skill-helper> <id>        Skills API helper commands
+
+Skill helper commands:
+  get-requirement, get-task-context, start-stage, complete-stage,
+  fail-stage, attach-artifact, upload-artifact, append-note
+
+Global flags:
+  --json    Output JSON
+  --help    Show this help
+`;
+}
+
 async function dispatch(parsed: ParsedArgs, runtime: CliRuntime): Promise<string> {
   const [command, subcommand] = parsed.command;
+  if (!command || parsed.flags.help === true) return printHelp();
   if (command === "init") return initCommand(parsed, runtime);
   if (command === "status") return statusCommand(parsed, runtime);
   if (command === "auth" && subcommand === "status") {
@@ -85,17 +112,30 @@ async function initCommand(
     bootstrapToken,
     machineName,
   });
-  await runtime.store.writeConfig({
+  const config: CliConfig = {
     environment,
     machineName,
     workspacePath: runtime.cwd,
-  });
+  };
+  await runtime.store.writeConfig(config);
   await runtime.keychain.setToken("skill", response.tokens.skill);
   await runtime.keychain.setToken("dispatcher", response.tokens.dispatcher);
   await runtime.keychain.setToken("local", response.tokens.local);
-  return parsed.json
-    ? json({ initialized: true, environment, machineName })
-    : `Initialized Proud Flow CLI for ${environment}\n`;
+  const manifest = loadBundledManifest();
+  const skillInstall = await installSkills(runtime, manifest, { config });
+  const skillInstallRoot = resolveSkillInstallRoot(config);
+  if (parsed.json) {
+    return json({
+      initialized: true,
+      environment,
+      machineName,
+      skillInstallRoot,
+      skillsInstalled: skillInstall.installed.map((item) => item.name),
+      skillsSkipped: skillInstall.skipped,
+    });
+  }
+  const installedNames = skillInstall.installed.map((item) => item.name).join(", ") || "none";
+  return `Initialized Proud Flow CLI for ${environment}\nInstalled Skills to ${skillInstallRoot}: ${installedNames}\n`;
 }
 
 async function statusCommand(
@@ -341,18 +381,23 @@ async function skillCommand(
   runtime: CliRuntime,
 ): Promise<string> {
   const subcommand = parsed.command[1];
-  const client = await createLocalClient(runtime);
-  const manifest = await client.local.getSkillManifest();
+  const config = await requireConfig(runtime);
+  const manifest = loadBundledManifest();
+  const skillInstallRoot = resolveSkillInstallRoot(config);
   if (subcommand === "install" || subcommand === "update") {
     const result = await installSkills(runtime, manifest, {
+      config,
       force: parsed.flags.force === true,
     });
     return parsed.json
-      ? json(result)
-      : `Installed Skills: ${result.installed.map((item) => item.name).join(", ") || "none"}\nSkipped: ${result.skipped.map((item) => item.name).join(", ") || "none"}\n`;
+      ? json({ ...result, skillInstallRoot })
+      : `Installed Skills to ${skillInstallRoot}: ${result.installed.map((item) => item.name).join(", ") || "none"}\nSkipped: ${result.skipped.map((item) => item.name).join(", ") || "none"}\n`;
   }
   if (subcommand === "status") {
-    const payload = { skills: await getSkillStatuses(runtime, manifest) };
+    const payload = {
+      skillInstallRoot,
+      skills: await getSkillStatuses(runtime, manifest, config),
+    };
     return parsed.json
       ? json(payload)
       : payload.skills
@@ -462,7 +507,9 @@ function parseArgs(args: readonly string[]): ParsedArgs {
   const command: string[] = [];
   for (let index = 0; index < args.length; index += 1) {
     const item = args[index];
-    if (item.startsWith("--")) {
+    if (item === "-h") {
+      flags.help = true;
+    } else if (item.startsWith("--")) {
       const key = item.slice(2);
       const next = args[index + 1];
       if (!next || next.startsWith("--")) {

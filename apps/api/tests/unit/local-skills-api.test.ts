@@ -20,15 +20,8 @@ describe("Local API and Skills API", () => {
     assert.match(body.tokens.local, /^pf_local_/);
     assert.equal(body.tokens.skill.includes("bootstrap-secret"), false);
 
-    const manifest = await json(
-      await request(app, "/api/local/skills/manifest"),
-    );
-    assert.equal(manifest.version, "0.1.0");
-    assert.equal(manifest.skills.length, 3);
-    assert.equal(
-      manifest.skills.every((skill) => skill.sha256.length >= 64),
-      true,
-    );
+    const manifest = await request(app, "/api/local/skills/manifest");
+    assert.equal(manifest.status, 404);
   });
 
   it("enforces token boundaries across user, skill, and local APIs", async () => {

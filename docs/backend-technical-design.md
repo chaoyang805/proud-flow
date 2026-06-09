@@ -313,13 +313,12 @@ POST   /api/skills/requirements/:id/notes
 
 ### 6.3 本地 CLI API
 
-本地 CLI API 面向 `proud-flow init`、token 管理和 Skill 安装更新。用户不配置 `backendUrl`，CLI 按 prod / dev 环境选择固定后端地址。
+本地 CLI API 面向 `proud-flow init` 和 token 管理。Skill 安装由 CLI 内置包完成，不经过 Local API。用户不配置 `backendUrl`，CLI 按 prod / dev 环境选择固定后端地址。
 
 ```text
 POST   /api/local/bootstrap
 POST   /api/local/tokens/rotate
 POST   /api/local/tokens/revoke
-GET    /api/local/skills/manifest
 ```
 
 关键语义：
@@ -327,7 +326,6 @@ GET    /api/local/skills/manifest
 - `bootstrap` 用于本地 CLI 首次绑定平台，返回 dispatcher token 和 skill token 明文；明文只返回一次。
 - `tokens/rotate` 用于轮换本地 CLI 使用的 dispatcher token 或 skill token。
 - `tokens/revoke` 用于退出登录或废弃本地设备 token。
-- `skills/manifest` 返回当前环境可安装的 Skill 包版本、下载地址、hash 和兼容 CLI 版本。
 - MVP 可以先用个人初始化密钥或一次性绑定码调用 `bootstrap`；团队版后续升级为网页登录授权或设备码授权。
 
 ### 6.4 Daemon WebSocket 派发协议

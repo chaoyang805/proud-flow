@@ -4,7 +4,7 @@
 
 ## 职责
 
-- 定义 monorepo workspace globs（`apps/*`、`packages/*`、`skills/*`）
+- 定义 monorepo workspace globs（`apps/*`、`packages/*`）
 - 定义根级质量检查任务（build / typecheck / lint / test 等）
 - 提供任务名校验函数
 

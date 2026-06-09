@@ -20,7 +20,6 @@ const paths = [
   "/api/local/bootstrap",
   "/api/local/tokens/rotate",
   "/api/local/tokens/revoke",
-  "/api/local/skills/manifest",
 ];
 
 const document = {

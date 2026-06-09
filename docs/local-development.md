@@ -78,13 +78,7 @@ The CLI stores config and tokens in `~/.proud-flow` unless `PROUD_FLOW_CONFIG_DI
 
 ## Skills
 
-Build Skill packages with:
-
-```bash
-pnpm skills:package
-```
-
-The generated packages are consumed by the local CLI through the backend Skill manifest. During development the manifest can point at a custom static host by setting `SKILL_MANIFEST_BASE_URL` in the API environment.
+Skill sources live in `apps/cli/skills/`; build bundles them into `apps/cli/dist/package-skills/` (including `manifest.json`). `proud-flow init` installs to `{workspacePath}/.codex/skills/`. Run `pnpm --filter @proud-flow/cli build` or `skills:bundle` after changing Skill sources.
 
 ## Local Acceptance Checklist
 

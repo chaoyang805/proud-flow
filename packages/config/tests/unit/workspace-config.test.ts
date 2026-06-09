@@ -9,11 +9,7 @@ import {
 
 describe("workspace engineering config", () => {
   it("lists every P0 workspace glob", () => {
-    assert.deepEqual(workspacePackageGlobs, [
-      "apps/*",
-      "packages/*",
-      "skills/*",
-    ]);
+    assert.deepEqual(workspacePackageGlobs, ["apps/*", "packages/*"]);
   });
 
   it("recognizes root quality tasks", () => {

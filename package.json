@@ -14,9 +14,8 @@
     "lint": "node scripts/lint.mjs",
     "test": "pnpm build && node scripts/turbo-run.mjs test",
     "test:coverage": "pnpm build && node scripts/turbo-run.mjs test:coverage",
-    "test:e2e": "pnpm skills:package && pnpm exec vitest run -c vitest.e2e.config.ts --passWithNoTests",
+    "test:e2e": "node apps/cli/scripts/bundle-skills.mjs && pnpm exec vitest run -c vitest.e2e.config.ts --passWithNoTests",
     "test:browser": "pnpm exec playwright test",
-    "skills:package": "node scripts/build-skill-packages.mjs",
     "release:check": "node scripts/check-release-readiness.mjs",
     "deploy:api:dev": "pnpm --filter @proud-flow/api deploy:dev",
     "deploy:api:prod": "pnpm --filter @proud-flow/api deploy:prod",
@@ -25,7 +24,6 @@
     "db:migrate:dev": "pnpm --filter @proud-flow/api db:migrate:dev",
     "db:migrate:prod": "pnpm --filter @proud-flow/api db:migrate:prod",
     "publish:cli": "pnpm --filter @proud-flow/cli publish:package",
-    "publish:skills": "pnpm skills:package",
     "format": "node scripts/format.mjs --write",
     "format:check": "node scripts/format.mjs --check",
     "openapi:generate": "pnpm --filter @proud-flow/api-contract openapi:generate"

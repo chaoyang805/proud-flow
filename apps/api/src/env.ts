@@ -18,7 +18,6 @@ export interface ApiEnv {
   DISPATCH_DO?: DurableObjectNamespace;
   REALTIME_DO?: DurableObjectNamespace;
   ENVIRONMENT?: string;
-  SKILL_MANIFEST_BASE_URL?: string;
   USER_TOKEN_HASHES?: string;
   SKILL_TOKEN_HASHES?: string;
   DISPATCHER_TOKEN_HASHES?: string;

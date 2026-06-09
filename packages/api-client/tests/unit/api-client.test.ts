@@ -77,10 +77,6 @@ describe("api client package", () => {
             allowedActions: ["complete-stage"],
           },
         };
-      if (url.endsWith("/manifest"))
-        return {
-          body: { version: "0.1.0", cliVersionRange: ">=0.1.0", skills: [] },
-        };
       if (url.endsWith("/artifacts")) return { body: { items: [] } };
       if (
         url.includes("/reviews/") ||
@@ -106,7 +102,6 @@ describe("api client package", () => {
       (await client.skills.getTaskContext("REQ-000123")).requirement.id,
       "REQ-000123",
     );
-    assert.equal((await client.local.getSkillManifest()).version, "0.1.0");
     assert.deepEqual((await client.artifacts.list("REQ-000123")).items, []);
     assert.equal(
       (await client.reviews.approve("REQ-000123", { note: "通过" })).requirement

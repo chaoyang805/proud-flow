@@ -1,7 +1,6 @@
 export const workspacePackageGlobs = [
   "apps/*",
   "packages/*",
-  "skills/*",
 ] as const;
 
 export const rootQualityTasks = [

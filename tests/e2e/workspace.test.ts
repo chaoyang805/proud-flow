@@ -32,7 +32,7 @@ describe("workspace e2e", () => {
 
     assert.match(workspace, /apps\/\*/);
     assert.match(workspace, /packages\/\*/);
-    assert.match(workspace, /skills\/\*/);
+    assert.doesNotMatch(workspace, /skills\/\*/);
   });
 
   it("generates OpenAPI JSON for shared API contracts", async () => {
@@ -45,7 +45,7 @@ describe("workspace e2e", () => {
 
     assert.equal(openapi.openapi, "3.1.0");
     assert.ok(openapi.paths["/api/requirements"]);
-    assert.ok(openapi.paths["/api/local/skills/manifest"]);
+    assert.equal(openapi.paths["/api/local/skills/manifest"], undefined);
   });
   it("runs a P2 backend requirement lifecycle through the Worker fetch app", async () => {
     const { createApiApp } = await import("../../apps/api/src/test-utils");
@@ -269,7 +269,7 @@ describe("workspace e2e", () => {
     assert.equal(JSON.parse(completed.stdout).requirement.status, "tech-review");
   });
 
-  it("runs P6 Skill install and status through the local manifest", async () => {
+  it("runs Skill install via bundled CLI skills and workspacePath", async () => {
     const { createApiApp, hashToken } = await import(
       "../../apps/api/src/test-utils"
     );
@@ -283,27 +283,18 @@ describe("workspace e2e", () => {
       TOKEN_HASH_SECRET: "pepper",
     };
     const runtime = createMemoryCliRuntime({
-      fetch: async (url, init) => {
-        const href = String(url);
-        if (href.startsWith("https://static.proud-flow.example/skills/")) {
-          const fileName = href.split("/").at(-1);
-          const bytes = await readFile(path.join(root, "skills/dist", fileName));
-          return new Response(bytes);
-        }
-        return app.fetch(
-          new Request(href, {
+      fetch: (url, init) =>
+        app.fetch(
+          new Request(String(url), {
             method: init?.method,
             headers: init?.headers,
             body: init?.body,
           }),
           env,
-        );
-      },
-      env: {
-        PROUD_FLOW_API_URL: "https://api.test",
-        CODEX_HOME: "/codex",
-      },
+        ),
+      env: { PROUD_FLOW_API_URL: "https://api.test" },
     });
+    const workspacePath = process.cwd();
 
     const init = await runCli(
       [
@@ -318,16 +309,18 @@ describe("workspace e2e", () => {
       runtime,
     );
     assert.equal(init.exitCode, 0);
+    assert.match(init.stdout, /\.codex\/skills/);
+
+    const skillMd = Buffer.from(
+      await runtime.readFile(
+        `${workspacePath}/.codex/skills/tech-design/SKILL.md`,
+      ),
+    ).toString("utf8");
+    assert.match(skillMd, /proud-flow get-task-context <requirementId> --stage tech_design/);
 
     const installed = await runCli(["skill", "install", "--json"], runtime);
     assert.equal(installed.exitCode, 0);
     assert.equal(JSON.parse(installed.stdout).installed.length, 3);
-    assert.match(
-      Buffer.from(
-        await runtime.readFile("/codex/skills/tech-design/SKILL.md"),
-      ).toString("utf8"),
-      /proud-flow get-task-context <requirementId> --stage tech_design/,
-    );
 
     const status = await runCli(["skill", "status", "--json"], runtime);
     assert.deepEqual(

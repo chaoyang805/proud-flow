@@ -23,7 +23,6 @@
     "/api/skills/requirements/{id}/notes": {},
     "/api/local/bootstrap": {},
     "/api/local/tokens/rotate": {},
-    "/api/local/tokens/revoke": {},
-    "/api/local/skills/manifest": {}
+    "/api/local/tokens/revoke": {}
   }
 }

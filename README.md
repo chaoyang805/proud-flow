@@ -10,7 +10,7 @@ proud-flow is an AI-assisted requirements workflow platform. It connects a Web r
 - `packages/domain`: shared workflow, artifact, dispatch, and token domain types.
 - `packages/api-contract`: shared request/response schemas and OpenAPI path inventory.
 - `packages/api-client`: typed Proud Flow API client.
-- `skills/*`: Codex Skills for technical design, case rundown, and development delivery.
+- `apps/cli/skills/`: Codex Skills bundled with the CLI for technical design, case rundown, and development delivery.
 
 ## Local Quick Start
 

@@ -40,7 +40,7 @@ packages/domain Shared domain types and pure functions
 packages/api-contract Zod schemas and OpenAPI generation
 packages/api-client Shared typed API client
 packages/config Shared TypeScript, lint, format, and test config
-skills/*        Codex Skills
+apps/cli/skills Codex Skills（随 CLI 发布）
 docs/*          Product, technical, engineering, and roadmap docs
 ```
 

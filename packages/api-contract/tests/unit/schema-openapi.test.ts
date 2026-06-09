@@ -15,7 +15,6 @@ import {
   requirementResponseSchema,
   rollbackReviewRequestSchema,
   routeSpecs,
-  skillManifestResponseSchema,
   taskContextResponseSchema,
 } from "../../src/index";
 
@@ -116,21 +115,6 @@ describe("api contract package", () => {
       true,
     );
     assert.equal(
-      skillManifestResponseSchema.is({
-        version: "0.1.0",
-        cliVersionRange: ">=0.1.0",
-        skills: [
-          {
-            name: "tech-design",
-            version: "0.1.0",
-            downloadUrl: "https://example.test/skill.tgz",
-            sha256: "abc",
-          },
-        ],
-      }),
-      true,
-    );
-    assert.equal(
       errorResponseSchema.is({
         error: { code: "INVALID_STATUS_TRANSITION", message: "状态错误" },
       }),
@@ -144,6 +128,6 @@ describe("api contract package", () => {
     assert.equal(routeSpecs.length >= 20, true);
     assert.ok(document.paths["/api/requirements"]);
     assert.ok(document.paths["/api/skills/requirements/{id}/complete-stage"]);
-    assert.ok(document.paths["/api/local/skills/manifest"]);
+    assert.equal(document.paths["/api/local/skills/manifest"], undefined);
   });
 });

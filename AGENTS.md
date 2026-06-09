@@ -11,7 +11,7 @@
 - The first-version architecture has three major modules: Web frontend, Cloudflare-native backend, and Proud Flow Local CLI / Daemon.
 - TypeScript is the shared language across frontend, backend, CLI / daemon, shared packages, and Skills helper code.
 - The backend is the source of truth for workflow state transitions and permissions.
-- The local `proud-flow` CLI / daemon handles dispatch WebSocket, Codex startup, Skill install/update, token management, and Skills API helper commands.
+- The local `proud-flow` CLI / daemon handles dispatch WebSocket, Codex startup, bundled Skill install to `workspacePath/.codex/skills/` (on init and via `skill install`), token management, and Skills API helper commands.
 
 ## Rule Index
 

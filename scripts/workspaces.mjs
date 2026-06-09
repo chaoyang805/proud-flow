@@ -6,7 +6,4 @@ export const workspaceOrder = [
   "apps/api",
   "apps/cli",
   "apps/web",
-  "skills/tech-design",
-  "skills/case-rundown",
-  "skills/development",
 ];

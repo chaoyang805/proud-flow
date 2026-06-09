@@ -1,5 +1,7 @@
+import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import { bundleSkills } from "../apps/cli/scripts/bundle-skills.mjs";
 
 const root = process.cwd();
 
@@ -9,6 +11,10 @@ async function readJson(filePath) {
 
 async function readText(filePath) {
   return readFile(path.join(root, filePath), "utf8");
+}
+
+function sha256(content) {
+  return createHash("sha256").update(content).digest("hex");
 }
 
 function assert(condition, message) {
@@ -21,13 +27,13 @@ const webPackage = await readJson("apps/web/package.json");
 const webWrangler = await readJson("apps/web/wrangler.jsonc");
 const cliPackage = await readJson("apps/cli/package.json");
 const webProdEnv = await readText("apps/web/.env.production");
-const manifest = await readJson("skills/manifest.json");
+await bundleSkills();
+const manifest = await readJson("apps/cli/dist/package-skills/manifest.json");
 
 assert(rootPackage.devDependencies?.wrangler, "Missing root wrangler devDependency");
 assert(rootPackage.scripts?.["deploy:api:prod"], "Missing deploy:api:prod script");
 assert(rootPackage.scripts?.["deploy:web:prod"], "Missing deploy:web:prod script");
 assert(rootPackage.scripts?.["publish:cli"], "Missing publish:cli script");
-assert(rootPackage.scripts?.["publish:skills"], "Missing publish:skills script");
 assert(apiWrangler.env?.dev, "Missing Cloudflare dev environment");
 assert(apiWrangler.env?.production, "Missing Cloudflare production environment");
 assert(webPackage.devDependencies?.["@opennextjs/cloudflare"], "Missing OpenNext Cloudflare adapter");
@@ -43,9 +49,18 @@ assert(
 );
 assert(cliPackage.private === false, "CLI package must be publishable");
 assert(cliPackage.bin?.["proud-flow"] === "./dist/bin.js", "Missing CLI bin entry");
+assert(cliPackage.files?.includes("dist"), "CLI package must ship dist");
+
 for (const skill of manifest.skills ?? []) {
-  assert(skill.downloadUrl?.startsWith("https://static.proud-flow.example/skills/"), `Invalid Skill URL: ${skill.name}`);
-  assert(/^[a-f0-9]{64}$/.test(skill.sha256), `Invalid Skill sha256: ${skill.name}`);
+  for (const [filePath, expectedHash] of Object.entries(skill.files ?? {})) {
+    const content = await readFile(
+      path.join(root, "apps/cli/dist/package-skills", skill.name, filePath),
+    );
+    assert(
+      sha256(content) === expectedHash,
+      `Bundled skill hash mismatch: ${skill.name}/${filePath}`,
+    );
+  }
 }
 
 for (const file of [

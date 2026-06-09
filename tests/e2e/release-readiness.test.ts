@@ -81,13 +81,12 @@ describe("P9 release readiness", () => {
       "utf8",
     );
     const skillManifest = await readJson<{
-      skills: Array<{ downloadUrl: string; sha256: string }>;
-    }>("skills/manifest.json");
+      skills: Array<{ name: string; files: Record<string, string> }>;
+    }>("apps/cli/dist/package-skills/manifest.json");
 
     assert.equal(rootPackage.scripts["deploy:web:dev"], "pnpm --filter @proud-flow/web deploy:dev");
     assert.equal(rootPackage.scripts["deploy:web:prod"], "pnpm --filter @proud-flow/web deploy:prod");
     assert.equal(rootPackage.scripts["publish:cli"], "pnpm --filter @proud-flow/cli publish:package");
-    assert.equal(rootPackage.scripts["publish:skills"], "pnpm skills:package");
     assert.equal(rootPackage.scripts["release:check"], "node scripts/check-release-readiness.mjs");
     assert.ok(webPackage.devDependencies["@opennextjs/cloudflare"]);
     assert.match(webPackage.scripts["deploy:prod"], /opennextjs-cloudflare deploy/);
@@ -105,9 +104,11 @@ describe("P9 release readiness", () => {
       webProdEnv,
       /^NEXT_PUBLIC_PROUD_FLOW_API_URL=https:\/\/api\.proud-flow\.example$/m,
     );
+    assert.equal(skillManifest.skills.length, 3);
     for (const skill of skillManifest.skills) {
-      assert.match(skill.downloadUrl, /^https:\/\/static\.proud-flow\.example\/skills\//);
-      assert.match(skill.sha256, /^[a-f0-9]{64}$/);
+      for (const hash of Object.values(skill.files)) {
+        assert.match(hash, /^[a-f0-9]{64}$/);
+      }
     }
   });
 
