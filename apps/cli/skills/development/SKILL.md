@@ -27,7 +27,7 @@ Turn reviewed design and test artifacts into a delivery artifact that is ready f
 7. Attach the delivery artifacts:
 
    ```text
-   proud-flow attach-artifact <requirementId> --type code_pr --title "Implementation PR" --url <artifact-url>
+   proud-flow attach-artifact <requirementId> --type development_pr --title "Implementation PR" --url <artifact-url>
    proud-flow upload-artifact <requirementId> --type test_report --title "Test report" --file <report-file>
    ```
 

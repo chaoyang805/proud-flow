@@ -25,7 +25,7 @@ Turn an approved technical design into a reviewable test case and acceptance pla
 5. Attach the case artifact:
 
    ```text
-   proud-flow attach-artifact <requirementId> --type case_pr --title "Test case plan" --url <artifact-url>
+   proud-flow attach-artifact <requirementId> --type case_rundown_pr --title "Test case plan" --url <artifact-url>
    ```
 
    If the artifact is a local document instead of a URL, use `proud-flow upload-artifact` with a document title.
