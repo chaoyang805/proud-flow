@@ -118,6 +118,22 @@ describe("CLI init and status", () => {
     assert.equal(JSON.parse(missingConfig.stderr).error.code, "INTERNAL_ERROR");
   });
 
+  it("shows help on stderr when a command group is used without a subcommand", async () => {
+    const runtime = createMemoryCliRuntime();
+    const result = await runCli(["auth"], runtime);
+    assert.equal(result.exitCode, 1);
+    assert.match(result.stderr, /auth/);
+    assert.match(result.stderr, /status/);
+    assert.equal(result.stdout, "");
+  });
+
+  it("shows help for auth --help", async () => {
+    const runtime = createMemoryCliRuntime();
+    const result = await runCli(["auth", "--help"], runtime);
+    assert.equal(result.exitCode, 0);
+    assert.match(result.stdout, /rotate/);
+  });
+
   it("shows help without requiring a requirement id", async () => {
     const runtime = createMemoryCliRuntime();
 

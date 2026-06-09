@@ -36,16 +36,6 @@ export async function runCli(
     },
   });
 
-  program.configureOutput({
-    writeOut: (text) => {
-      stdoutChunks.push(text);
-    },
-    writeErr: (text) => {
-      stderrChunks.push(text);
-    },
-  });
-  program.exitOverride();
-
   if (args.length === 0) {
     program.outputHelp();
     return {
@@ -64,8 +54,10 @@ export async function runCli(
     };
   } catch (error) {
     if (isHelpExit(error)) {
+      const exitCode =
+        error instanceof CommanderError ? (error.exitCode ?? 0) : 0;
       return {
-        exitCode: 0,
+        exitCode,
         stdout: stdoutChunks.join(""),
         stderr: stderrChunks.join(""),
       };

@@ -44,6 +44,13 @@ async function writeAction(
 export function createProgram(runtime: CliRuntime, io: CliIo): Command {
   const program = new Command();
 
+  // Must be set before subcommands are registered so they inherit _exitCallback.
+  program.exitOverride();
+  program.configureOutput({
+    writeOut: io.writeOut,
+    writeErr: io.writeErr,
+  });
+
   program
     .name("proud-flow")
     .description("Proud Flow CLI")
