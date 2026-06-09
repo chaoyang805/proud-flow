@@ -80,6 +80,38 @@ describe("CLI Skills API helper commands", () => {
     assert.equal(JSON.parse(result.stderr).error.code, "INVALID_STATUS_TRANSITION");
   });
 
+  it("rejects invalid artifact type with allowed values in CLI error", async () => {
+    const runtime = createMemoryCliRuntime();
+    await runtime.store.writeConfig({ environment: "dev", workspacePath: process.cwd() });
+    await runtime.keychain.setToken("skill", "pf_skill_token");
+
+    const result = await runCli(
+      [
+        "attach-artifact",
+        "REQ-000123",
+        "--type",
+        "case_pr",
+        "--title",
+        "PR",
+        "--url",
+        "https://pr",
+      ],
+      runtime,
+    );
+    assert.equal(result.exitCode, 1);
+    assert.match(result.stderr, /case_pr/);
+    assert.match(result.stderr, /case_rundown_pr/);
+  });
+
+  it("shows allowed stage values in complete-stage help", async () => {
+    const runtime = createMemoryCliRuntime();
+    const result = await runCli(["complete-stage", "--help"], runtime);
+    assert.equal(result.exitCode, 0);
+    assert.match(result.stdout, /case_rundown/);
+    assert.match(result.stdout, /tech_design/);
+    assert.match(result.stdout, /development/);
+  });
+
   it("reports unknown helper commands", async () => {
     const runtime = createMemoryCliRuntime();
     await runtime.store.writeConfig({ environment: "dev", workspacePath: process.cwd() });

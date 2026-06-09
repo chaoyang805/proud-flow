@@ -79,7 +79,8 @@ describe("CLI init and status", () => {
       runtime,
     );
     assert.equal(invalidEnv.exitCode, 1);
-    assert.match(invalidEnv.stderr, /INTERNAL_ERROR/);
+    assert.match(invalidEnv.stderr, /qa/);
+    assert.match(invalidEnv.stderr, /prod/);
 
     const initialized = await runCli(["init", "--bootstrap-token", "boot"], runtime);
     assert.match(initialized.stdout, /prod/);

@@ -1,5 +1,7 @@
+import { artifactTypes, dispatchStages } from "@proud-flow/domain";
 import { Command } from "commander";
 import type { CliRuntime } from "../runtime";
+import { enumOption } from "./option-choices";
 import { runInit } from "../commands/init";
 import { runStatus } from "../commands/status";
 import {
@@ -60,7 +62,7 @@ export function createProgram(runtime: CliRuntime, io: CliIo): Command {
   program
     .command("init")
     .description("Initialize CLI")
-    .option("--env <env>", "Environment (prod or dev)", "prod")
+    .addOption(enumOption("--env <env>", "Environment", ["prod", "dev"], { defaultValue: "prod" }))
     .option("--machine-name <name>", "Machine name", "local-machine")
     .requiredOption("--bootstrap-token <token>", "Bootstrap token")
     .action(async function (this: Command, options) {
@@ -89,7 +91,11 @@ export function createProgram(runtime: CliRuntime, io: CliIo): Command {
   auth
     .command("rotate")
     .description("Rotate a token")
-    .option("--type <type>", "Token type (skill, dispatcher, local)", "skill")
+    .addOption(
+      enumOption("--type <type>", "Token type", ["skill", "dispatcher", "local"], {
+        defaultValue: "skill",
+      }),
+    )
     .action(async function (this: Command, options) {
       await writeAction(
         io,
@@ -182,7 +188,7 @@ export function createProgram(runtime: CliRuntime, io: CliIo): Command {
   program
     .command("get-task-context <requirementId>")
     .description("Get task context for a requirement")
-    .option("--stage <stage>", "Dispatch stage hint (accepted for Skill compatibility)")
+    .addOption(enumOption("--stage <stage>", "Dispatch stage hint", dispatchStages))
     .action(async function (this: Command, requirementId: string) {
       await writeAction(
         io,
@@ -193,7 +199,7 @@ export function createProgram(runtime: CliRuntime, io: CliIo): Command {
   program
     .command("start-stage <requirementId>")
     .description("Start a dispatch stage")
-    .requiredOption("--stage <stage>", "Dispatch stage")
+    .addOption(enumOption("--stage <stage>", "Dispatch stage", dispatchStages, { mandatory: true }))
     .action(async function (this: Command, requirementId: string, options) {
       await writeAction(
         io,
@@ -204,7 +210,7 @@ export function createProgram(runtime: CliRuntime, io: CliIo): Command {
   program
     .command("attach-artifact <requirementId>")
     .description("Attach an artifact by URL or content")
-    .requiredOption("--type <type>", "Artifact type")
+    .addOption(enumOption("--type <type>", "Artifact type", artifactTypes, { mandatory: true }))
     .requiredOption("--title <title>", "Artifact title")
     .option("--url <url>", "Artifact URL")
     .option("--content <content>", "Artifact content")
@@ -221,7 +227,7 @@ export function createProgram(runtime: CliRuntime, io: CliIo): Command {
   program
     .command("upload-artifact <requirementId>")
     .description("Upload an artifact file")
-    .requiredOption("--type <type>", "Artifact type")
+    .addOption(enumOption("--type <type>", "Artifact type", artifactTypes, { mandatory: true }))
     .requiredOption("--title <title>", "Artifact title")
     .requiredOption("--file <file>", "File path")
     .option("--content-type <contentType>", "Content type")
@@ -238,7 +244,7 @@ export function createProgram(runtime: CliRuntime, io: CliIo): Command {
   program
     .command("complete-stage <requirementId>")
     .description("Complete a dispatch stage")
-    .requiredOption("--stage <stage>", "Dispatch stage")
+    .addOption(enumOption("--stage <stage>", "Dispatch stage", dispatchStages, { mandatory: true }))
     .option("--summary <summary>", "Stage summary (accepted for Skill compatibility)")
     .action(async function (this: Command, requirementId: string, options) {
       await writeAction(
@@ -253,7 +259,7 @@ export function createProgram(runtime: CliRuntime, io: CliIo): Command {
   program
     .command("fail-stage <requirementId>")
     .description("Fail a dispatch stage")
-    .requiredOption("--stage <stage>", "Dispatch stage")
+    .addOption(enumOption("--stage <stage>", "Dispatch stage", dispatchStages, { mandatory: true }))
     .requiredOption("--message <message>", "Failure message")
     .action(async function (this: Command, requirementId: string, options) {
       await writeAction(
