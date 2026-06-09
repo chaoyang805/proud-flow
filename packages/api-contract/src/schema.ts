@@ -1,3 +1,7 @@
+import { SchemaValidationError } from "./schema-validation-error";
+
+export { SchemaValidationError } from "./schema-validation-error";
+
 export interface Schema<T> {
   parse(value: unknown): T;
   is(value: unknown): value is T;
@@ -67,11 +71,23 @@ export function booleanSchema(): Schema<boolean> {
 export function enumSchema<const T extends readonly string[]>(
   values: T,
 ): Schema<T[number]> {
-  return createSchema(
-    (value): value is T[number] =>
-      typeof value === "string" && values.includes(value),
-    () => ({ type: "string", enum: values }),
-  );
+  return {
+    parse(value) {
+      if (typeof value !== "string" || !values.includes(value)) {
+        throw new SchemaValidationError("invalid enum value", {
+          value,
+          allowedValues: values,
+        });
+      }
+      return value;
+    },
+    is(value): value is T[number] {
+      return typeof value === "string" && values.includes(value);
+    },
+    toJsonSchema() {
+      return { type: "string", enum: values };
+    },
+  };
 }
 
 export function optionalSchema<T>(schema: Schema<T>): Schema<T | undefined> {
@@ -102,10 +118,29 @@ export function objectSchema<T extends Record<string, unknown>>(properties: {
 }): Schema<T> {
   return {
     parse(value) {
-      if (!this.is(value)) {
-        throw new Error("Value does not match object schema");
+      if (typeof value !== "object" || value === null || Array.isArray(value)) {
+        throw new SchemaValidationError("expected an object", {
+          field: "(root)",
+          value,
+        });
       }
-      return value;
+      const record = value as Record<string, unknown>;
+      const result = {} as T;
+      for (const [key, schema] of Object.entries(properties)) {
+        try {
+          (result as Record<string, unknown>)[key] = schema.parse(record[key]);
+        } catch (error) {
+          if (error instanceof SchemaValidationError) {
+            throw new SchemaValidationError(error.message, {
+              field: key,
+              value: record[key],
+              allowedValues: error.allowedValues,
+            });
+          }
+          throw error;
+        }
+      }
+      return result;
     },
     is(value): value is T {
       if (typeof value !== "object" || value === null || Array.isArray(value))
@@ -146,7 +181,7 @@ function createSchema<T>(
   return {
     parse(value) {
       if (!guard(value)) {
-        throw new Error("Value does not match schema");
+        throw new SchemaValidationError("invalid value", { value });
       }
       return value;
     },

@@ -1,4 +1,5 @@
 import { ProudFlowApiError } from "@proud-flow/api-client";
+import { SchemaValidationError } from "@proud-flow/api-contract";
 import { DispatcherAuthError } from "../daemon/verify-dispatcher-auth";
 
 export function json(value: unknown): string {
@@ -19,6 +20,11 @@ export function formatError(error: unknown, asJson: boolean): string {
   if (error instanceof ProudFlowApiError) {
     const payload = { error: { code: error.code, message: error.message } };
     return asJson ? json(payload) : `${error.code}: ${error.message}\n`;
+  }
+  if (error instanceof SchemaValidationError) {
+    const message = error.formatMessage();
+    const payload = { error: { code: "INVALID_ARGUMENT", message } };
+    return asJson ? json(payload) : `INVALID_ARGUMENT: ${message}\n`;
   }
   if (error instanceof DispatcherAuthError) {
     if (error.logged && !asJson) {

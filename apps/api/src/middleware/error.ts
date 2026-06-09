@@ -1,3 +1,4 @@
+import { SchemaValidationError } from "@proud-flow/api-contract";
 import type { ErrorCode } from "@proud-flow/domain";
 
 export class ApiError extends Error {
@@ -38,6 +39,9 @@ export function errorResponse(error: ApiError): Response {
 
 export function toApiError(error: unknown): ApiError {
   if (error instanceof ApiError) return error;
+  if (error instanceof SchemaValidationError) {
+    return new ApiError(400, "VALIDATION_ERROR", error.formatMessage());
+  }
   if (
     error instanceof Error &&
     (error.message.startsWith("Invalid ") ||
