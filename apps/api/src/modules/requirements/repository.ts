@@ -46,7 +46,7 @@ export interface IRequirementRepository {
   updateRequirement(id: string, input: RequirementUpdateInput): Promise<Requirement | undefined>;
   createArtifact(input: ArtifactCreateInput): Promise<Artifact>;
   listArtifacts(requirementId: string): Promise<Artifact[]>;
-  createApiToken(input: { tokenHash: string; tokenType: Extract<TokenType, "skill" | "dispatcher" | "local">; machineName?: string }): ApiTokenRecord;
+  createApiToken(input: { tokenHash: string; tokenType: Extract<TokenType, "skill" | "dispatcher" | "local">; machineName?: string }): Promise<ApiTokenRecord>;
   listActiveApiTokenHashes(tokenType: Extract<TokenType, "skill" | "dispatcher" | "local">): string[];
   revokeApiTokens(tokenType: Extract<TokenType, "skill" | "dispatcher" | "local">): void;
 }
@@ -121,11 +121,11 @@ export class InMemoryRequirementRepository implements IRequirementRepository {
     );
   }
 
-  createApiToken(input: {
+  async createApiToken(input: {
     tokenHash: string;
     tokenType: Extract<TokenType, "skill" | "dispatcher" | "local">;
     machineName?: string;
-  }): ApiTokenRecord {
+  }): Promise<ApiTokenRecord> {
     this.tokenCounter += 1;
     const record: ApiTokenRecord = {
       id: `tok_${this.tokenCounter.toString().padStart(6, "0")}`,

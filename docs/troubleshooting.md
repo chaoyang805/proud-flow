@@ -20,7 +20,7 @@ Run:
 proud-flow daemon --json
 ```
 
-Confirm the returned WebSocket URL uses the expected environment. Production should resolve from `https://api.proud-flow.example` to `wss://api.proud-flow.example/api/dispatch/ws`. If the backend returns `FORBIDDEN`, rotate the dispatcher token with the local auth command or re-run `proud-flow init`.
+Confirm the returned WebSocket URL uses the expected environment. Production should resolve from `https://api.proud-flow.example` to `wss://api.proud-flow.example/api/dispatch/ws`. If the backend returns `FORBIDDEN` for the dispatcher token, try `proud-flow auth rotate --type dispatcher` only when the **local** token is still valid. If `auth rotate` also returns `FORBIDDEN`, re-run `proud-flow init --bootstrap-token <token>`.
 
 If dispatch returns `DISPATCHER_OFFLINE`, confirm `proud-flow daemon` is running and connected. If it returns `DISPATCH_TIMEOUT`, the daemon received the task too slowly or did not send `dispatch.acked` within 5 seconds. Check daemon logs for `dispatch.requested` handling.
 

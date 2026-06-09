@@ -141,8 +141,8 @@ describe("D1RequirementRepository", () => {
     assert.equal(list[0].title, "设计文档");
   });
 
-  it("creates, lists, and revokes api tokens", () => {
-    const record = repo.createApiToken({ tokenHash: "hash1", tokenType: "dispatcher", machineName: "test" });
+  it("creates, lists, and revokes api tokens", async () => {
+    const record = await repo.createApiToken({ tokenHash: "hash1", tokenType: "dispatcher", machineName: "test" });
     assert.ok(record.id.startsWith("tok_"));
     assert.equal(record.tokenType, "dispatcher");
 

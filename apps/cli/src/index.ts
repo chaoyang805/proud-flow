@@ -7,8 +7,8 @@ export type {
   CliRuntime,
   StoredTokenType,
 } from "./runtime";
-export { runCli } from "./cli";
-export type { CliResult } from "./cli";
+export { runCli } from "./cli/run-cli";
+export type { CliResult } from "./cli/types";
 export {
   createDaemon,
   getReconnectDelayMs,
@@ -33,7 +33,17 @@ export {
   computeRetryDelay,
   handleWebSocketMessage,
 } from "./daemon/child-entry";
-export type { DaemonChildOptions, WebSocketLoopOptions } from "./daemon/child-entry";
+export type {
+  DaemonChildOptions,
+  WebSocketLoopHandle,
+  WebSocketLoopOptions,
+} from "./daemon/child-entry";
+export {
+  verifyDispatcherAuth,
+  DispatcherAuthError,
+  AUTH_FAILED_CODE,
+} from "./daemon/verify-dispatcher-auth";
+export type { VerifyDispatcherAuthOptions } from "./daemon/verify-dispatcher-auth";
 export {
   configDir,
   pidPath,
@@ -42,12 +52,19 @@ export {
   writePid,
   removePid,
   isProcessAlive,
+  resolveCliBinPath,
   spawnDaemon,
+  terminateProcess,
 } from "./daemon/spawn";
 export type { SpawnOptions } from "./daemon/spawn";
 export {
   resolveConfigDir,
   resolveLogPath,
+  resolveRollBasePath,
   resolvePidPath,
+  listArchivedLogFiles,
+  readDaemonLogTail,
   createLogger,
+  createConsoleLogger,
 } from "./daemon/logger";
+export type { DaemonLogger } from "./daemon/logger";

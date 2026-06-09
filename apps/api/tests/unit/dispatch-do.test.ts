@@ -94,6 +94,28 @@ describe("DispatchDurableObject", () => {
     });
   });
 
+  it("logs disconnect once when close and error both fire", async () => {
+    const doInstance = createDo();
+    const logs = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    await doInstance.fetch(
+      new Request(`${DO_INTERNAL_ORIGIN}${DO_PATH_WS}`, {
+        method: "GET",
+        headers: { Upgrade: "websocket" },
+      }),
+    );
+
+    serverWs.emit("close", {});
+    serverWs.emit("error", {});
+
+    const disconnectLogs = logs.mock.calls.filter(([message]) =>
+      String(message).includes("daemon disconnected"),
+    );
+    assert.equal(disconnectLogs.length, 1);
+
+    logs.mockRestore();
+  });
+
   it("times out when daemon does not ack", async () => {
     vi.useFakeTimers();
     const doInstance = createDo();

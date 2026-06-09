@@ -53,6 +53,7 @@ export class RealtimeDurableObject extends DurableObject<RealtimeDoEnv> {
     );
 
     const remove = () => {
+      if (!this.clients.has(server)) return;
       this.clients.delete(server);
       console.log(
         `[realtime-do] client disconnected (remaining: ${this.clients.size})`,

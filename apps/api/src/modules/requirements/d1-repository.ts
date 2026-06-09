@@ -187,12 +187,12 @@ export class D1RequirementRepository implements IRequirementRepository {
 
   // ==================== Tokens ====================
 
-  createApiToken(input: { tokenHash: string; tokenType: TokenCategory; machineName?: string }): ApiTokenRecord {
+  async createApiToken(input: { tokenHash: string; tokenType: TokenCategory; machineName?: string }): Promise<ApiTokenRecord> {
     this.tokenCounter += 1;
     const id = `tok_${this.tokenCounter.toString().padStart(6, "0")}`;
     const now = new Date().toISOString();
     const record: ApiTokenRecord = { id, tokenHash: input.tokenHash, tokenType: input.tokenType, machineName: input.machineName, createdAt: now };
-    void this.db.prepare(
+    await this.db.prepare(
       "INSERT INTO api_tokens (id, token_hash, token_type, created_at) VALUES (?, ?, ?, ?)",
     ).bind(id, input.tokenHash, input.tokenType, now).run();
     const hashes = this.apiTokenHashes.get(input.tokenType) ?? [];

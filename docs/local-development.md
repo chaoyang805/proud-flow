@@ -39,6 +39,8 @@ http://127.0.0.1:8787
 
 Local D1 state persists under `apps/api/.wrangler/state/`. Restarting `pnpm dev:api` keeps requirements, artifacts, and API tokens unless you clear that directory. WebSocket connections are dropped on reload and daemon / web clients reconnect automatically.
 
+`pnpm test:e2e` 中的完整生命周期测试（`tests/e2e/full-lifecycle.test.ts`）使用独立的 Wrangler 配置：环境 `e2e`（D1 库名 `proud-flow-e2e`）、动态分配端口、`--persist-to` 临时目录。不会读写 `apps/api/.wrangler/state/`，也不会影响正在运行的 `pnpm dev:api`（8787）。
+
 If `BOOTSTRAP_TOKEN_HASHES` is not set, `proud-flow init` accepts any bootstrap token. Unit tests without DO bindings still use the in-memory `RealtimeHub` fallback.
 
 For Cloudflare-style development, use the API deploy configuration in `apps/api/wrangler.jsonc` after replacing placeholder D1 database IDs.

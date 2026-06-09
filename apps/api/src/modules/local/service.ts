@@ -52,7 +52,7 @@ export class LocalApiService {
     env: ApiEnv,
   ): Promise<string> {
     const token = createPlaintextToken(tokenType);
-    this.repository.createApiToken({
+    await this.repository.createApiToken({
       tokenType,
       machineName,
       tokenHash: await hashToken(token, env.TOKEN_HASH_SECRET),

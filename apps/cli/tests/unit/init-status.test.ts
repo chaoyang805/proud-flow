@@ -125,7 +125,7 @@ describe("CLI init and status", () => {
       const result = await runCli(args, runtime);
       assert.equal(result.exitCode, 0);
       assert.match(result.stdout, /Proud Flow CLI/);
-      assert.match(result.stdout, /proud-flow init/);
+      assert.match(result.stdout, /init \[options\]/);
     }
   });
 });

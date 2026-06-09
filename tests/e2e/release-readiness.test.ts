@@ -55,6 +55,8 @@ describe("P9 release readiness", () => {
     assert.equal(wrangler.env.production.vars.ENVIRONMENT, "prod");
     assert.equal(wrangler.env.dev.d1_databases[0].binding, "DB");
     assert.equal(wrangler.env.production.r2_buckets[0].binding, "ARTIFACT_BUCKET");
+    assert.equal(wrangler.env.e2e.name, "proud-flow-api-e2e");
+    assert.equal(wrangler.env.e2e.d1_databases[0].database_name, "proud-flow-e2e");
   });
 
   it("prepares web, CLI, and Skill release assets", async () => {

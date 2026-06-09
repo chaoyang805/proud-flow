@@ -151,14 +151,20 @@ async function handleDispatchWebSocketMemory(
     } catch { /* invalid message */ }
   });
 
-  serverWs.addEventListener("close", () => {
-    console.log("[dispatch] ws: daemon disconnected");
+  let cleanedUp = false;
+  const cleanup = (reason: "close" | "error") => {
+    if (cleanedUp) return;
+    cleanedUp = true;
+    console.log(
+      reason === "close"
+        ? "[dispatch] ws: daemon disconnected"
+        : "[dispatch] ws: error",
+    );
     unregister();
-  });
-  serverWs.addEventListener("error", () => {
-    console.log("[dispatch] ws: error");
-    unregister();
-  });
+  };
+
+  serverWs.addEventListener("close", () => cleanup("close"));
+  serverWs.addEventListener("error", () => cleanup("error"));
 
   serverWs.send(JSON.stringify({ type: "dispatcher.ping", timestamp: new Date().toISOString() }));
   console.log("[dispatch] ws: daemon connected");

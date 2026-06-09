@@ -103,6 +103,7 @@ export class DispatchDurableObject extends DurableObject<DispatchDoEnv> {
     });
 
     const remove = () => {
+      if (!this.sessions.has(server)) return;
       this.sessions.delete(server);
       console.log(
         `[dispatch-do] daemon disconnected (remaining: ${this.sessions.size})`,

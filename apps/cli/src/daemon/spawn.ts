@@ -1,7 +1,24 @@
+import process from "node:process";
 import { spawn } from "node:child_process";
-import { writeFileSync, unlinkSync, readFileSync, existsSync, mkdirSync } from "node:fs";
+import {
+  writeFileSync,
+  unlinkSync,
+  readFileSync,
+  existsSync,
+  mkdirSync,
+} from "node:fs";
 import { dirname } from "node:path";
 import { resolvePidPath, resolveLogPath } from "./logger";
+
+export function resolveCliBinPath(): string {
+  if (process.env.PROUD_FLOW_CLI_BIN) {
+    return process.env.PROUD_FLOW_CLI_BIN;
+  }
+  if (process.argv[1]) {
+    return process.argv[1];
+  }
+  throw new Error("Cannot resolve CLI binary path (missing process.argv[1])");
+}
 
 export function configDir(): string {
   return process.env.PROUD_FLOW_CONFIG_DIR ?? resolvePidPath().split("/").slice(0, -1).join("/");
@@ -52,6 +69,55 @@ export function isProcessAlive(pid: number): boolean {
   } catch {
     return false;
   }
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export interface TerminateProcessOptions {
+  graceMs?: number;
+}
+
+/** Send SIGTERM, wait, then SIGKILL if the process is still alive. */
+export async function terminateProcess(
+  pid: number,
+  options: TerminateProcessOptions = {},
+): Promise<boolean> {
+  const graceMs = options.graceMs ?? 2000;
+  if (pid === process.pid) {
+    return true;
+  }
+  if (!isProcessAlive(pid)) {
+    return true;
+  }
+
+  try {
+    process.kill(pid, "SIGTERM");
+  } catch {
+    return !isProcessAlive(pid);
+  }
+
+  const deadline = Date.now() + graceMs;
+  while (Date.now() < deadline) {
+    if (!isProcessAlive(pid)) {
+      return true;
+    }
+    await sleep(100);
+  }
+
+  if (!isProcessAlive(pid)) {
+    return true;
+  }
+
+  try {
+    process.kill(pid, "SIGKILL");
+  } catch {
+    return !isProcessAlive(pid);
+  }
+
+  await sleep(100);
+  return !isProcessAlive(pid);
 }
 
 export interface SpawnOptions {

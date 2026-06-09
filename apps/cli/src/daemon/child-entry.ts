@@ -1,16 +1,33 @@
 import process from "node:process";
-import { createLogger } from "./logger";
+import { createLogger, type DaemonLogger } from "./logger";
 import { createNodeCliRuntime } from "../runtime";
 import { getBackendUrl } from "../environment";
 import { createMockCodexRunner } from "./codex-runner";
 import { createDaemon } from "./daemon";
+import {
+  AUTH_FAILED_CODE,
+  DispatcherAuthError,
+  verifyDispatcherAuth,
+} from "./verify-dispatcher-auth";
+import {
+  isProcessAlive,
+  readPid,
+  removePid,
+  writePid,
+} from "./spawn";
 
 export interface DaemonChildOptions {
   binPath: string;
 }
 
-export function startDaemonChild(_options: DaemonChildOptions): void {
-  const logger = createLogger();
+export interface WebSocketLoopHandle {
+  stop(): void;
+}
+
+export async function startDaemonChild(
+  _options: DaemonChildOptions,
+): Promise<void> {
+  const logger = await createLogger(true);
 
   process.on("unhandledRejection", (reason) => {
     logger.error({ err: reason }, "unhandled rejection");
@@ -22,25 +39,76 @@ export function startDaemonChild(_options: DaemonChildOptions): void {
   logger.info({ pid: process.pid }, "daemon child started");
 
   const runtime = createNodeCliRuntime();
-  runtime.store.readConfig().then((config) => {
-    if (!config) {
-      logger.error("CLI not initialized (no config found)");
-      process.exit(1);
-    }
+  const config = await runtime.store.readConfig();
+  if (!config) {
+    logger.error("CLI not initialized (no config found)");
+    process.exit(1);
+    return;
+  }
 
-    runtime.keychain.getToken("dispatcher").then((token) => {
-      if (!token) {
-        logger.error("missing dispatcher token");
-        process.exit(1);
-      }
+  const token = await runtime.keychain.getToken("dispatcher");
+  if (!token) {
+    logger.error("missing dispatcher token");
+    process.exit(1);
+    return;
+  }
 
-      runWebSocketLoop({
-        env: runtime.env,
-        environment: config.environment ?? "prod",
-        token,
-        logger,
-      });
+  const environment = config.environment ?? "prod";
+
+  try {
+    await verifyDispatcherAuth({
+      environment,
+      env: runtime.env,
+      token,
+      fetch: runtime.fetch,
     });
+  } catch (error) {
+    logger.error(
+      { err: error instanceof Error ? error.message : String(error) },
+      "dispatcher authentication failed",
+    );
+    process.exit(1);
+    return;
+  }
+
+  const existingPid = readPid();
+  if (existingPid && existingPid !== process.pid && isProcessAlive(existingPid)) {
+    logger.error({ existingPid }, "another daemon is already running");
+    process.exit(1);
+    return;
+  }
+  writePid(process.pid);
+
+  const loop = runWebSocketLoop({
+    env: runtime.env,
+    environment,
+    token,
+    logger,
+    fetch: runtime.fetch,
+  });
+
+  await waitForShutdownSignal(loop, logger);
+}
+
+function waitForShutdownSignal(
+  loop: WebSocketLoopHandle,
+  logger: DaemonLogger,
+): Promise<void> {
+  return new Promise((resolve) => {
+    let exiting = false;
+    const shutdown = (signal: string) => {
+      if (exiting) return;
+      exiting = true;
+      loop.stop();
+      if (readPid() === process.pid) {
+        removePid();
+      }
+      logger.info({ signal }, "shutting down");
+      resolve();
+      process.exit(0);
+    };
+    process.once("SIGINT", () => shutdown("SIGINT"));
+    process.once("SIGTERM", () => shutdown("SIGTERM"));
   });
 }
 
@@ -48,7 +116,8 @@ export interface WebSocketLoopOptions {
   env: Record<string, string | undefined>;
   environment: string;
   token: string;
-  logger: ReturnType<typeof createLogger>;
+  logger: DaemonLogger;
+  fetch?: typeof fetch;
 }
 
 export function buildWebSocketUrl(
@@ -66,17 +135,71 @@ export function computeRetryDelay(attempt: number): number {
   return Math.min(30_000, 600 * 2 ** Math.max(0, attempt));
 }
 
-export function runWebSocketLoop(opts: WebSocketLoopOptions): void {
+function exitOnAuthFailure(error: unknown, logger: DaemonLogger): void {
+  const message =
+    error instanceof DispatcherAuthError
+      ? error.message
+      : `${AUTH_FAILED_CODE}: ${error instanceof Error ? error.message : String(error)}`;
+  logger.error({}, message);
+  process.exit(1);
+}
+
+export function runWebSocketLoop(opts: WebSocketLoopOptions): WebSocketLoopHandle {
   const wsUrl = buildWebSocketUrl(opts.environment, opts.env, opts.token);
   const logger = opts.logger;
 
   logger.info({ wsUrl }, "WebSocket URL prepared");
 
+  let stopped = false;
   let retryCount = 0;
+  let retryTimer: ReturnType<typeof setTimeout> | undefined;
+  let activeWs: WebSocket | undefined;
+
+  const stop = () => {
+    if (stopped) return;
+    stopped = true;
+    if (retryTimer) {
+      clearTimeout(retryTimer);
+      retryTimer = undefined;
+    }
+    activeWs?.close();
+    activeWs = undefined;
+  };
+
+  const scheduleRetry = async (reason: string) => {
+    if (stopped || retryTimer) return;
+
+    try {
+      await verifyDispatcherAuth({
+        environment: opts.environment,
+        env: opts.env,
+        token: opts.token,
+        fetch: opts.fetch,
+      });
+    } catch (error) {
+      if (
+        error instanceof DispatcherAuthError &&
+        error.code === AUTH_FAILED_CODE
+      ) {
+        exitOnAuthFailure(error, logger);
+        return;
+      }
+    }
+
+    const delay = computeRetryDelay(retryCount);
+    logger.info({ retryMs: delay, reason }, "WebSocket disconnected, retrying");
+    retryTimer = setTimeout(() => {
+      retryTimer = undefined;
+      connect();
+    }, delay);
+    retryCount += 1;
+  };
 
   const connect = () => {
-    logger.info("connecting WebSocket...");
+    if (stopped) return;
+    logger.info({}, "connecting WebSocket...");
     const ws = new WebSocket(wsUrl);
+    activeWs = ws;
     const runner = createMockCodexRunner();
     const daemon = createDaemon({
       runner,
@@ -90,7 +213,7 @@ export function runWebSocketLoop(opts: WebSocketLoopOptions): void {
 
     ws.onopen = () => {
       retryCount = 0;
-      logger.info("WebSocket connected");
+      logger.info({}, "WebSocket connected");
     };
 
     ws.onmessage = (event) => {
@@ -98,26 +221,34 @@ export function runWebSocketLoop(opts: WebSocketLoopOptions): void {
       handleWebSocketMessage(ws, data, daemon, logger);
     };
 
-    ws.onclose = () => {
-      const delay = computeRetryDelay(retryCount);
-      logger.info({ retryMs: delay }, "WebSocket closed, retrying");
-      setTimeout(connect, delay);
-      retryCount += 1;
+    ws.onclose = (event) => {
+      if (stopped) return;
+      logger.info(
+        { code: event.code, reason: event.reason || undefined },
+        "WebSocket closed",
+      );
+      void scheduleRetry("close");
     };
 
-    ws.onerror = (err) => {
-      logger.error({ err }, "WebSocket error");
+    ws.onerror = () => {
+      if (stopped) return;
+      logger.error(
+        {},
+        "WebSocket connection failed (check dispatcher token and API)",
+      );
+      void scheduleRetry("error");
     };
   };
 
   connect();
+  return { stop };
 }
 
 export function handleWebSocketMessage(
   ws: WebSocket,
   data: string,
   daemon: ReturnType<typeof createDaemon>,
-  logger: ReturnType<typeof createLogger>,
+  logger: DaemonLogger,
 ): void {
   try {
     const msg = JSON.parse(data);

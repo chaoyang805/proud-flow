@@ -1,8 +1,9 @@
-import { describe, expect, it, beforeEach, afterEach } from "vitest";
-import { writeFileSync } from "node:fs";
+import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
+import { writeFileSync, readFileSync, unlinkSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import type { DispatchMessage } from "@proud-flow/domain";
+import type { CliRuntime } from "../../src/runtime";
 import {
   createCodexCliRunner,
   createDaemon,
@@ -25,6 +26,12 @@ import {
   buildWebSocketUrl,
   computeRetryDelay,
   handleWebSocketMessage,
+  resolveCliBinPath,
+  spawnDaemon,
+  verifyDispatcherAuth,
+  AUTH_FAILED_CODE,
+  runWebSocketLoop,
+  readDaemonLogTail,
 } from "../../src/index";
 
 // Helper to set PROUD_FLOW_CONFIG_DIR for isolated tests
@@ -34,6 +41,25 @@ function setConfigDirEnv(dir: string) {
 
 function clearConfigDirEnv() {
   delete process.env.PROUD_FLOW_CONFIG_DIR;
+}
+
+function mockAuthFetch(status = 426): typeof fetch {
+  return vi.fn(async () => new Response("check", { status })) as typeof fetch;
+}
+
+async function createDaemonCliRuntime(
+  testDir: string,
+  options: { authStatus?: number } = {},
+): Promise<CliRuntime> {
+  const runtime = createMemoryCliRuntime({
+    fetch: mockAuthFetch(options.authStatus),
+  });
+  await runtime.store.writeConfig({
+    environment: "dev",
+    workspacePath: testDir,
+  });
+  await runtime.keychain.setToken("dispatcher", "pf_dispatcher_test");
+  return runtime;
 }
 
 describe("daemon dispatch protocol", () => {
@@ -422,7 +448,7 @@ describe("daemon spawn and process management", () => {
   });
 
   it("logPath is under config directory", () => {
-    expect(logPath()).toContain("daemon.log");
+    expect(logPath()).toContain("current.log");
     expect(logPath()).toContain(configDir());
   });
 
@@ -436,44 +462,157 @@ describe("daemon spawn and process management", () => {
     }
   });
 
-  it("resolveLogPath returns path ending in daemon.log", () => {
-    expect(resolveLogPath()).toMatch(/daemon\.log$/);
+  it("resolveLogPath returns path ending in current.log", () => {
+    expect(resolveLogPath()).toMatch(/current\.log$/);
   });
 
   it("resolvePidPath returns path ending in daemon.pid", () => {
     expect(resolvePidPath()).toMatch(/daemon\.pid$/);
   });
+
+  it("resolveCliBinPath prefers PROUD_FLOW_CLI_BIN over argv", () => {
+    const customBin = join(testDir, "custom-bin.js");
+    process.env.PROUD_FLOW_CLI_BIN = customBin;
+    try {
+      expect(resolveCliBinPath()).toBe(customBin);
+    } finally {
+      delete process.env.PROUD_FLOW_CLI_BIN;
+    }
+  });
+});
+
+describe("verifyDispatcherAuth", () => {
+  it("accepts 426 as authenticated dispatcher", async () => {
+    await expect(
+      verifyDispatcherAuth({
+        environment: "dev",
+        env: { PROUD_FLOW_API_URL: "http://127.0.0.1:8787" },
+        token: "pf_dispatcher_test",
+        fetch: mockAuthFetch(426),
+      }),
+    ).resolves.toBeUndefined();
+  });
+
+  it("rejects 403 with AUTH_FAILED", async () => {
+    await expect(
+      verifyDispatcherAuth({
+        environment: "dev",
+        env: { PROUD_FLOW_API_URL: "http://127.0.0.1:8787" },
+        token: "pf_dispatcher_bad",
+        fetch: mockAuthFetch(403),
+      }),
+    ).rejects.toThrow(AUTH_FAILED_CODE);
+  });
+
+  it("rejects network errors with API_UNREACHABLE", async () => {
+    await expect(
+      verifyDispatcherAuth({
+        environment: "dev",
+        env: { PROUD_FLOW_API_URL: "http://127.0.0.1:8787" },
+        token: "pf_dispatcher_test",
+        fetch: vi.fn(async () => {
+          throw new Error("connection refused");
+        }) as typeof fetch,
+      }),
+    ).rejects.toThrow("Cannot reach API");
+  });
+});
+
+describe("runWebSocketLoop shutdown", () => {
+  it("stop is idempotent and returns a handle", () => {
+    const logger = {
+      info: vi.fn(),
+      error: vi.fn(),
+      debug: vi.fn(),
+    };
+    const loop = runWebSocketLoop({
+      environment: "dev",
+      env: { PROUD_FLOW_API_URL: "http://127.0.0.1:8787" },
+      token: "pf_dispatcher_test",
+      logger,
+      fetch: mockAuthFetch(426),
+    });
+    expect(typeof loop.stop).toBe("function");
+    expect(() => {
+      loop.stop();
+      loop.stop();
+    }).not.toThrow();
+    loop.stop();
+  });
 });
 
 describe("daemon logger module", () => {
-  const testDir = join(tmpdir(), "proud-flow-log-test-" + Date.now());
-
-  it("createLogger returns a pino logger instance", () => {
-    const logPath = join(testDir, "test-daemon.log");
-    const logger = createLogger(logPath);
-    expect(logger).toBeDefined();
-    expect(typeof logger.info).toBe("function");
-    expect(typeof logger.error).toBe("function");
-    expect(typeof logger.debug).toBe("function");
+  it("createLogger returns a pino logger instance", async () => {
+    const testDir = join(tmpdir(), `proud-flow-log-create-${Date.now()}`);
+    mkdirSync(testDir, { recursive: true });
+    setConfigDirEnv(testDir);
+    try {
+      const logger = await createLogger(true);
+      expect(logger).toBeDefined();
+      expect(typeof logger.info).toBe("function");
+      expect(typeof logger.error).toBe("function");
+      expect(typeof logger.debug).toBe("function");
+      logger.info({}, "timestamp format check");
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      const log = readFileSync(join(testDir, "current.log"), "utf8");
+      expect(log).toMatch(/\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/);
+      expect(log).not.toMatch(/"time":\d+/);
+    } finally {
+      clearConfigDirEnv();
+    }
   });
 
-  it("createLogger uses default path when none provided", () => {
-    const logger = createLogger();
-    expect(logger).toBeDefined();
+  it("readDaemonLogTail reads current.log", () => {
+    const testDir = join(tmpdir(), `proud-flow-log-read-${Date.now()}`);
+    mkdirSync(testDir, { recursive: true });
+    setConfigDirEnv(testDir);
+    try {
+      writeFileSync(join(testDir, "current.log"), "alpha\nbeta\n", "utf8");
+      expect(readDaemonLogTail(10)).toContain("beta");
+    } finally {
+      clearConfigDirEnv();
+    }
   });
 });
 
 describe("daemon CLI commands", () => {
   const testDir = join(tmpdir(), "proud-flow-cli-test-" + Date.now());
+  const daemonStubPath = join(testDir, "daemon-stub.mjs");
 
   beforeEach(() => {
+    mkdirSync(testDir, { recursive: true });
     setConfigDirEnv(testDir);
     removePid();
+    writeFileSync(
+      daemonStubPath,
+      [
+        'process.on("SIGTERM", () => process.exit(0));',
+        'process.on("SIGINT", () => process.exit(0));',
+        "setInterval(() => {}, 60_000);",
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+    process.env.PROUD_FLOW_CLI_BIN = daemonStubPath;
   });
 
   afterEach(() => {
+    const pid = readPid();
+    if (pid && isProcessAlive(pid)) {
+      try {
+        process.kill(pid, "SIGTERM");
+      } catch {
+        // ignore
+      }
+    }
     clearConfigDirEnv();
+    delete process.env.PROUD_FLOW_CLI_BIN;
     removePid();
+    try {
+      unlinkSync(daemonStubPath);
+    } catch {
+      // ignore
+    }
   });
 
   it("daemon status shows not running when no PID", async () => {
@@ -564,7 +703,7 @@ describe("daemon CLI commands", () => {
     expect(parsed).toEqual({ stopped: false });
   });
 
-  it("daemon stop kills a dead PID and cleans up", async () => {
+  it("daemon stop cleans up a stale PID file", async () => {
     writePid(99999);
     const runtime = createMemoryCliRuntime();
     await runtime.store.writeConfig({
@@ -572,11 +711,11 @@ describe("daemon CLI commands", () => {
       workspacePath: testDir,
     });
     const result = await runCli(["daemon", "stop"], runtime);
-    expect(result.stdout).toContain("Daemon not running");
+    expect(result.stdout).toContain("Daemon stopped");
     expect(readPid()).toBeUndefined();
   });
 
-  it("daemon stop in JSON mode for dead PID", async () => {
+  it("daemon stop in JSON mode for stale PID", async () => {
     writePid(99999);
     const runtime = createMemoryCliRuntime();
     await runtime.store.writeConfig({
@@ -585,31 +724,75 @@ describe("daemon CLI commands", () => {
     });
     const result = await runCli(["daemon", "stop", "--json"], runtime);
     const parsed = JSON.parse(result.stdout);
-    expect(parsed.stopped).toBe(false);
+    expect(parsed.stopped).toBe(true);
+    expect(parsed.pid).toBe(99999);
   });
 
-  it("daemon background start detects already-running daemon", async () => {
-    writePid(process.pid);
+  it("daemon stop terminates a running background daemon", async () => {
+    const { pid: oldPid } = spawnDaemon({ binPath: daemonStubPath });
+    writePid(oldPid);
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    expect(isProcessAlive(oldPid)).toBe(true);
+
     const runtime = createMemoryCliRuntime();
     await runtime.store.writeConfig({
       environment: "dev",
       workspacePath: testDir,
     });
-    await runtime.keychain.setToken("dispatcher", "pf_token");
+    const result = await runCli(["daemon", "stop"], runtime);
+    expect(result.stdout).toContain("Daemon stopped");
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    expect(isProcessAlive(oldPid)).toBe(false);
+    expect(readPid()).toBeUndefined();
+  });
+
+  it("daemon background start replaces an existing daemon", async () => {
+    const { pid: oldPid } = spawnDaemon({ binPath: daemonStubPath });
+    writePid(oldPid);
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    expect(isProcessAlive(oldPid)).toBe(true);
+
+    const runtime = await createDaemonCliRuntime(testDir);
+    const result = await runCli(["daemon"], runtime);
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain("Daemon started");
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    expect(isProcessAlive(oldPid)).toBe(false);
+    const newPid = readPid();
+    expect(newPid).toBeDefined();
+    expect(newPid).not.toBe(oldPid);
+    if (newPid) {
+      try {
+        process.kill(newPid, "SIGTERM");
+      } catch {
+        // ignore
+      }
+    }
+    removePid();
+  });
+
+  it("daemon background start fails when auth check fails", async () => {
+    removePid();
+    const runtime = await createDaemonCliRuntime(testDir, { authStatus: 403 });
     const result = await runCli(["daemon"], runtime);
     expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("Daemon already running");
+    expect(result.stderr).toBe("");
+    expect(readPid()).toBeUndefined();
+  });
+
+  it("daemon background start returns JSON auth error in stderr", async () => {
     removePid();
+    const runtime = await createDaemonCliRuntime(testDir, { authStatus: 403 });
+    const result = await runCli(["daemon", "--json"], runtime);
+    expect(result.exitCode).toBe(1);
+    const parsed = JSON.parse(result.stderr);
+    expect(parsed.error.code).toBe(AUTH_FAILED_CODE);
+    expect(readPid()).toBeUndefined();
   });
 
   it("daemon background start spawns child and returns success", async () => {
     removePid();
-    const runtime = createMemoryCliRuntime();
-    await runtime.store.writeConfig({
-      environment: "dev",
-      workspacePath: testDir,
-    });
-    await runtime.keychain.setToken("dispatcher", "pf_token");
+    const runtime = await createDaemonCliRuntime(testDir);
     const result = await runCli(["daemon"], runtime);
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain("Daemon started");
@@ -619,28 +802,18 @@ describe("daemon CLI commands", () => {
 
   it("daemon background start JSON mode returns started + pid", async () => {
     removePid();
-    const runtime = createMemoryCliRuntime();
-    await runtime.store.writeConfig({
-      environment: "dev",
-      workspacePath: testDir,
-    });
-    await runtime.keychain.setToken("dispatcher", "pf_token");
+    const runtime = await createDaemonCliRuntime(testDir);
     const result = await runCli(["daemon", "--json"], runtime);
     const parsed = JSON.parse(result.stdout);
     expect(parsed.started).toBe(true);
     expect(typeof parsed.pid).toBe("number");
-    expect(parsed.log).toContain("daemon.log");
+    expect(parsed.log).toContain("current.log");
     removePid();
   });
 
   it("daemon background start clears stale PID before spawning", async () => {
     writePid(99999); // stale
-    const runtime = createMemoryCliRuntime();
-    await runtime.store.writeConfig({
-      environment: "dev",
-      workspacePath: testDir,
-    });
-    await runtime.keychain.setToken("dispatcher", "pf_token");
+    const runtime = await createDaemonCliRuntime(testDir);
     const result = await runCli(["daemon"], runtime);
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain("Daemon started");
@@ -657,8 +830,8 @@ describe("daemon CLI commands", () => {
     expect(result.stdout).toContain("No daemon log found");
   });
 
-  it("daemon logs reads last N lines from log file", async () => {
-    const logFile = join(testDir, "daemon.log");
+  it("daemon logs reads last N lines from current.log", async () => {
+    const logFile = join(testDir, "current.log");
     const lines = Array.from({ length: 100 }, (_, i) => `line ${i + 1}`);
     writeFileSync(logFile, lines.join("\n"), "utf8");
 
@@ -674,7 +847,7 @@ describe("daemon CLI commands", () => {
   });
 
   it("daemon logs --lines N shows specified number of lines", async () => {
-    const logFile = join(testDir, "daemon.log");
+    const logFile = join(testDir, "current.log");
     const lines = Array.from({ length: 20 }, (_, i) => `line ${i + 1}`);
     writeFileSync(logFile, lines.join("\n"), "utf8");
 

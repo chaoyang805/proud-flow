@@ -4,7 +4,7 @@ Proud Flow 本地 CLI 与守护进程（Daemon）。
 
 ## 职责
 
-- CLI 命令分发（init / status / auth / skill / daemon / skill-helper）
+- CLI 命令分发（init / status / auth / skill / daemon / Skills API helper）
 - 守护进程管理（后台启动、前台阻塞、状态检查、停止、日志查看）
 - WebSocket 调度连接（接收后端 dispatch 事件，启动 Codex 执行）
 - Token 管理（skill / dispatcher / local 三种 token 的存储和轮换）
@@ -14,15 +14,24 @@ Proud Flow 本地 CLI 与守护进程（Daemon）。
 ## 命令参考
 
 ```
+proud-flow                            # 无子命令时默认前台启动 daemon
 proud-flow init                       # 初始化 CLI（自动安装 Skill）
 proud-flow status                     # 查看状态
 proud-flow auth status/rotate/logout  # 认证管理
 proud-flow skill install/update/status # Skill 管理
-proud-flow daemon                     # 后台启动守护进程
+proud-flow daemon                     # 后台启动守护进程（启动前鉴权）
 proud-flow daemon --foreground        # 前台启动（日志 stdout）
 proud-flow daemon status/stop         # 守护进程管理
 proud-flow daemon logs [--follow] [--lines N]  # 查看日志
-proud-flow skill-helper <cmd> <id>    # Skills API 辅助命令
+proud-flow get-requirement <id>       # Skills API 辅助命令（顶层）
+proud-flow get-task-context <id> [--stage <stage>]
+proud-flow start-stage <id> --stage <stage>
+proud-flow attach-artifact <id> --type <type> --title <title> [--url <url>]
+proud-flow upload-artifact <id> --type <type> --title <title> --file <path>
+proud-flow complete-stage <id> --stage <stage> [--summary <text>]
+proud-flow fail-stage <id> --stage <stage> --message <text>
+proud-flow append-note <id> --message <text>
+proud-flow --help                     # 查看全部命令
 ```
 
 ## 目录结构
@@ -31,7 +40,12 @@ proud-flow skill-helper <cmd> <id>    # Skills API 辅助命令
 skills/                 # Skill 源文件（开发用；build 复制到 dist/package-skills/）
 src/
 ├── bin.ts              # CLI 入口（识别 --daemon-child）
-├── cli.ts              # 命令分发与路由
+├── cli/
+│   ├── run-cli.ts      # runCli 入口（Commander + exitOverride）
+│   ├── program.ts      # Commander 命令注册
+│   ├── output.ts       # JSON/Markdown 输出与错误格式化
+│   └── clients.ts      # API client 工厂
+├── commands/           # 各命令实现（init / auth / skill / daemon / skill-helpers）
 ├── runtime.ts          # 运行时抽象（Node / Memory 两种实现）
 ├── environment.ts      # 环境判断与后端 URL
 ├── index.ts            # 公共导出
@@ -62,7 +76,8 @@ src/
 - 配置目录：`~/.proud-flow/`（可通过 `PROUD_FLOW_CONFIG_DIR` 覆盖）
 - 配置文件：`config.json`、`tokens.json`
 - PID 文件：`daemon.pid`
-- 日志文件：`daemon.log`（pino-roll 滚动，10MB/文件，保留 5 个归档）
+- 日志入口：`current.log`（软链，指向当前活跃的 `daemon.N.log`）
+- 日志归档：`daemon.1.log` 等（pino-pretty 可读文本 + pino-roll 滚动，10MB/文件，保留 5 个归档）
 
 ## 本地开发
 

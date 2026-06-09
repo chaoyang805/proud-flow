@@ -35,6 +35,23 @@ describe("CLI auth commands", () => {
     assert.equal(await runtime.keychain.getToken("local"), undefined);
   });
 
+  it("suggests re-init when rotate is forbidden", async () => {
+    const runtime = createMemoryCliRuntime({
+      fetch: createMockFetch(() => {
+        return { status: 403, body: { error: { code: "FORBIDDEN", message: "Invalid bearer token" } } };
+      }),
+    });
+    await runtime.store.writeConfig({
+      environment: "dev",
+      workspacePath: process.cwd(),
+    });
+    await runtime.keychain.setToken("local", "pf_local_stale");
+
+    const result = await runCli(["auth", "rotate", "--type", "dispatcher"], runtime);
+    assert.equal(result.exitCode, 1);
+    assert.match(result.stderr, /init --bootstrap-token/);
+  });
+
   it("handles invalid rotate type and logout without local token", async () => {
     const runtime = createMemoryCliRuntime();
     await runtime.store.writeConfig({

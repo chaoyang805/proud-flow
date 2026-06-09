@@ -104,6 +104,37 @@
           }
         ]
       }
+    },
+    "e2e": {
+      "name": "proud-flow-api-e2e",
+      "vars": {
+        "ENVIRONMENT": "dev"
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "proud-flow-e2e",
+          "database_id": "00000000-0000-0000-0000-000000000001"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "ARTIFACT_BUCKET",
+          "bucket_name": "proud-flow-e2e-artifacts"
+        }
+      ],
+      "durable_objects": {
+        "bindings": [
+          {
+            "name": "DISPATCH_DO",
+            "class_name": "DispatchDurableObject"
+          },
+          {
+            "name": "REALTIME_DO",
+            "class_name": "RealtimeDurableObject"
+          }
+        ]
+      }
     }
   }
 }
