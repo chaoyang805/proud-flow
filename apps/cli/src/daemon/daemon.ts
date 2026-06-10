@@ -1,14 +1,13 @@
 import { dispatchMessageSchema } from "@proud-flow/api-contract";
 import type { DispatchAckedMessage, DispatchMessage } from "@proud-flow/domain";
-import { createStageCommand } from "./stage-router";
-import type { CodexRunner } from "./codex-runner";
+import type { AgentRunner } from "./agent-runner";
 
 export interface ProudFlowDaemon {
   receive(message: unknown): Promise<void>;
 }
 
 export interface ProudFlowDaemonOptions {
-  runner: CodexRunner;
+  runner: AgentRunner;
   send(message: DispatchMessage): Promise<void>;
   now?: () => string;
   dedupeLimit?: number;
@@ -67,9 +66,10 @@ export function createDaemon(options: ProudFlowDaemonOptions): ProudFlowDaemon {
 
       busy = true;
       try {
-        await options.runner.run(
-          createStageCommand(message.stage, message.requirementId),
-        );
+        await options.runner.run({
+          stage: message.stage,
+          requirementId: message.requirementId,
+        });
         await sendAck({
           type: "dispatch.acked",
           requestId: message.requestId,

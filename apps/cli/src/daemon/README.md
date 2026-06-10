@@ -11,8 +11,23 @@ CLI 守护进程核心逻辑。
 | `verify-dispatcher-auth.ts` | 启动/重连前 dispatcher token HTTP 预检 |
 | `spawn.ts` | 进程管理（后台 spawn、PID 文件读写、存活性检查） |
 | `logger.ts` | pino-pretty + pino-roll 日志（`current.log` 软链） |
-| `stage-router.ts` | Dispatch Stage → Codex 命令映射（tech_design → /tech-design） |
-| `codex-runner.ts` | Codex 执行器抽象（Mock 实现 + CLI 实现） |
+| `agent-runner.ts` | Agent 执行器抽象（`AgentRunner` / `AgentTask` / Mock） |
+| `stage-router.ts` | Dispatch Stage → Codex skill prompt 映射 |
+| `codex-runner.ts` | Codex `AgentRunner` 实现（`codex exec` detached spawn） |
+
+## Agent Runner
+
+daemon 通过 `AgentRunner` 与本地 AI Agent 交互。第一版仅实现 `codex`，后续可扩展 `claude`、`cursor` 等实现。
+
+Codex 调用方式：
+
+```text
+codex exec --sandbox danger-full-access "<prompt>"
+```
+
+- 工作区通过 spawn `cwd: workspacePath` 设定（不使用 `-C`）。
+- stdin 重定向为 `ignore`，避免 `codex exec` 在 daemon 子进程中挂起。
+- detached 后台启动，spawn 成功后立即 ACK，不等待任务完成。
 
 ## 日志
 

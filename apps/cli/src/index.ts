@@ -18,14 +18,27 @@ export type {
   ProudFlowDaemonOptions,
 } from "./daemon/daemon";
 export {
+  createMockAgentRunner,
+} from "./daemon/agent-runner";
+export type {
+  AgentKind,
+  AgentRunner,
+  AgentTask,
+  MockAgentRunner,
+} from "./daemon/agent-runner";
+export {
   createCodexCliRunner,
-  createMockCodexRunner,
 } from "./daemon/codex-runner";
 export type {
-  CodexRunner,
-  MockCodexRunner,
+  CodexCliRunnerOptions,
+  CodexSandbox,
+  CodexSpawnFn,
+  CodexSpawnOptions,
 } from "./daemon/codex-runner";
-export { createStageCommand } from "./daemon/stage-router";
+export {
+  createStagePrompt,
+  resolveStageSkillName,
+} from "./daemon/stage-router";
 export {
   startDaemonChild,
   runWebSocketLoop,

@@ -1,14 +1,19 @@
 import type { DispatchStage } from "@proud-flow/domain";
 
-const stageCommands = {
-  tech_design: "/tech-design",
-  case_rundown: "/case-rundown",
-  development: "/develop",
+const stageSkillNames = {
+  tech_design: "tech-design",
+  case_rundown: "case-rundown",
+  development: "development",
 } as const satisfies Record<DispatchStage, string>;
 
-export function createStageCommand(
+export function resolveStageSkillName(stage: DispatchStage): string {
+  return stageSkillNames[stage];
+}
+
+export function createStagePrompt(
   stage: DispatchStage,
   requirementId: string,
 ): string {
-  return `${stageCommands[stage]} ${requirementId}`;
+  const skillName = stageSkillNames[stage];
+  return `Use the $${skillName} skill to handle Proud Flow requirement ${requirementId}.`;
 }

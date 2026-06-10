@@ -8,8 +8,8 @@ import {
   createCodexCliRunner,
   createDaemon,
   createMemoryCliRuntime,
-  createMockCodexRunner,
-  createStageCommand,
+  createMockAgentRunner,
+  createStagePrompt,
   getReconnectDelayMs,
   runCli,
   readPid,
@@ -63,20 +63,20 @@ async function createDaemonCliRuntime(
 }
 
 describe("daemon dispatch protocol", () => {
-  it("maps dispatch stages to fixed local Skill commands", () => {
-    expect(createStageCommand("tech_design", "REQ-000123")).toBe(
-      "/tech-design REQ-000123",
+  it("maps dispatch stages to codex skill prompts", () => {
+    expect(createStagePrompt("tech_design", "REQ-000123")).toBe(
+      "Use the $tech-design skill to handle Proud Flow requirement REQ-000123.",
     );
-    expect(createStageCommand("case_rundown", "REQ-000123")).toBe(
-      "/case-rundown REQ-000123",
+    expect(createStagePrompt("case_rundown", "REQ-000123")).toBe(
+      "Use the $case-rundown skill to handle Proud Flow requirement REQ-000123.",
     );
-    expect(createStageCommand("development", "REQ-000123")).toBe(
-      "/develop REQ-000123",
+    expect(createStagePrompt("development", "REQ-000123")).toBe(
+      "Use the $development skill to handle Proud Flow requirement REQ-000123.",
     );
   });
 
   it("ACKs dispatch requests through a runner without using remote commands", async () => {
-    const runner = createMockCodexRunner();
+    const runner = createMockAgentRunner();
     const sent: unknown[] = [];
     const daemon = createDaemon({
       runner,
@@ -93,14 +93,16 @@ describe("daemon dispatch protocol", () => {
       command: "rm -rf /",
     });
 
-    expect(runner.calls).toEqual([{ command: "/tech-design REQ-000123" }]);
+    expect(runner.calls).toEqual([
+      { stage: "tech_design", requirementId: "REQ-000123" },
+    ]);
     expect(sent).toEqual([
       { type: "dispatch.acked", requestId: "dispatch_req_1", success: true },
     ]);
   });
 
   it("returns failure ACK when Codex is unavailable", async () => {
-    const runner = createMockCodexRunner({ failWith: "Codex unavailable" });
+    const runner = createMockAgentRunner({ failWith: "Codex unavailable" });
     const sent: unknown[] = [];
     const daemon = createDaemon({
       runner,
@@ -129,9 +131,10 @@ describe("daemon dispatch protocol", () => {
   it("protects the single runner from concurrent dispatch and deduplicates request ids", async () => {
     let release: (() => void) | undefined;
     const runner = {
-      calls: [] as { command: string }[],
-      async run(command: string) {
-        this.calls.push({ command });
+      kind: "codex" as const,
+      calls: [] as Array<{ stage: string; requirementId: string }>,
+      async run(task: { stage: string; requirementId: string }) {
+        this.calls.push(task);
         await new Promise<void>((resolve) => {
           release = resolve;
         });
@@ -180,7 +183,7 @@ describe("daemon dispatch protocol", () => {
   it("responds to ping, validates schema, computes reconnect backoff", async () => {
     const sent: unknown[] = [];
     const daemon = createDaemon({
-      runner: createMockCodexRunner(),
+      runner: createMockAgentRunner(),
       send: async (message) => {
         sent.push(message);
       },
@@ -210,21 +213,65 @@ describe("daemon dispatch protocol", () => {
     expect(getReconnectDelayMs(9)).toBe(30000);
   });
 
-  it("codex cli runner executes the correct command", async () => {
+  it("codex cli runner spawns codex exec with sandbox and workspace cwd", async () => {
     const executions: unknown[] = [];
+    const spawnOptions: unknown[] = [];
+    const mockChild = {
+      once(event: string, cb: () => void) {
+        if (event === "spawn") setImmediate(cb);
+      },
+      unref() {},
+      stdout: { on() {} },
+      stderr: { on() {} },
+    };
     const codex = createCodexCliRunner({
-      execute: async (command, args) => {
+      workspacePath: "/workspace",
+      spawnFn: (command, args, options) => {
         executions.push([command, args]);
+        spawnOptions.push(options);
+        return mockChild as never;
       },
     });
-    await codex.run("/develop REQ-000123");
-    expect(executions).toEqual([["codex", ["exec", "/develop REQ-000123"]]]);
+    await codex.run({ stage: "development", requirementId: "REQ-000123" });
+    expect(executions).toEqual([
+      [
+        "codex",
+        [
+          "exec",
+          "--sandbox",
+          "danger-full-access",
+          "Use the $development skill to handle Proud Flow requirement REQ-000123.",
+        ],
+      ],
+    ]);
+    expect(spawnOptions[0]).toMatchObject({
+      cwd: "/workspace",
+      stdio: ["ignore", "pipe", "pipe"],
+      detached: true,
+    });
+  });
+
+  it("codex cli runner rejects when spawn fails", async () => {
+    const mockChild = {
+      once(event: string, cb: (error?: Error) => void) {
+        if (event === "error") setImmediate(() => cb(new Error("ENOENT")));
+      },
+      stdout: { on() {} },
+      stderr: { on() {} },
+    };
+    const codex = createCodexCliRunner({
+      workspacePath: "/workspace",
+      spawnFn: () => mockChild as never,
+    });
+    await expect(
+      codex.run({ stage: "tech_design", requirementId: "REQ-000123" }),
+    ).rejects.toThrow("CODEX_NOT_CONNECTED");
   });
 
   it("prunes old ACK cache entries and ignores inbound ACK messages", async () => {
     const sent: DispatchMessage[] = [];
     const daemon = createDaemon({
-      runner: createMockCodexRunner(),
+      runner: createMockAgentRunner(),
       dedupeLimit: 1,
       send: async (message) => {
         sent.push(message);
@@ -300,7 +347,7 @@ describe("child-entry utilities", () => {
       send: (data: string) => { sent.push(data); },
     } as unknown as WebSocket;
     const daemon = createDaemon({
-      runner: createMockCodexRunner(),
+      runner: createMockAgentRunner(),
       send: async () => {},
     });
     const logger = {
@@ -325,7 +372,7 @@ describe("child-entry utilities", () => {
       readyState: 1,
       send: (_data: string) => {},
     } as unknown as WebSocket;
-    const runner = createMockCodexRunner();
+    const runner = createMockAgentRunner();
     const logMsgs: string[] = [];
     const daemon = createDaemon({
       runner,
@@ -357,7 +404,7 @@ describe("child-entry utilities", () => {
       send: (_data: string) => {},
     } as unknown as WebSocket;
     const daemon = createDaemon({
-      runner: createMockCodexRunner(),
+      runner: createMockAgentRunner(),
       send: async () => {},
     });
     const debugMsgs: unknown[] = [];
@@ -378,7 +425,7 @@ describe("child-entry utilities", () => {
       send: (data: string) => { sent.push(data); },
     } as unknown as WebSocket;
     const daemon = createDaemon({
-      runner: createMockCodexRunner(),
+      runner: createMockAgentRunner(),
       send: async () => {},
     });
     const logger = {
@@ -529,6 +576,7 @@ describe("runWebSocketLoop shutdown", () => {
       environment: "dev",
       env: { PROUD_FLOW_API_URL: "http://127.0.0.1:8787" },
       token: "pf_dispatcher_test",
+      workspacePath: "/tmp/proud-flow-workspace",
       logger,
       fetch: mockAuthFetch(426),
     });

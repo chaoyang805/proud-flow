@@ -202,6 +202,7 @@ async function daemonForeground(
     env: runtime.env,
     environment: config.environment ?? "prod",
     token,
+    workspacePath: config.workspacePath,
     logger,
     fetch: runtime.fetch,
   });

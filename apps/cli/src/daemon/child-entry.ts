@@ -1,8 +1,10 @@
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import process from "node:process";
 import { createLogger, type DaemonLogger } from "./logger";
 import { createNodeCliRuntime } from "../runtime";
 import { getBackendUrl } from "../environment";
-import { createMockCodexRunner } from "./codex-runner";
+import { createCodexCliRunner } from "./codex-runner";
 import { createDaemon } from "./daemon";
 import {
   AUTH_FAILED_CODE,
@@ -83,6 +85,7 @@ export async function startDaemonChild(
     env: runtime.env,
     environment,
     token,
+    workspacePath: config.workspacePath,
     logger,
     fetch: runtime.fetch,
   });
@@ -116,6 +119,7 @@ export interface WebSocketLoopOptions {
   env: Record<string, string | undefined>;
   environment: string;
   token: string;
+  workspacePath: string;
   logger: DaemonLogger;
   fetch?: typeof fetch;
 }
@@ -195,12 +199,25 @@ export function runWebSocketLoop(opts: WebSocketLoopOptions): WebSocketLoopHandl
     retryCount += 1;
   };
 
+  const skillsRoot = join(opts.workspacePath, ".codex", "skills");
+  if (!existsSync(skillsRoot)) {
+    logger.info(
+      { skillsRoot },
+      "Proud Flow skills not installed; run `proud-flow skill install`",
+    );
+  }
+
   const connect = () => {
     if (stopped) return;
     logger.info({}, "connecting WebSocket...");
     const ws = new WebSocket(wsUrl);
     activeWs = ws;
-    const runner = createMockCodexRunner();
+    const runner = createCodexCliRunner({
+      workspacePath: opts.workspacePath,
+      onLog: (line, stream) => {
+        logger.debug({ stream }, line);
+      },
+    });
     const daemon = createDaemon({
       runner,
       send: async (message) => {

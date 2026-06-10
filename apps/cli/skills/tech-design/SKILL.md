@@ -1,10 +1,32 @@
+---
+name: tech-design
+description: Use when Proud Flow dispatches the tech_design stage or when asked via $tech-design <requirementId> to produce a technical design.
+---
+
 # Tech Design
 
-Use this skill when Proud Flow dispatches `/tech-design <requirementId>` or when the user asks you to produce the technical design for a Proud Flow requirement.
+Use this skill when Proud Flow dispatches `$tech-design <requirementId>` or when the user asks you to produce the technical design for a Proud Flow requirement.
 
 ## Goal
 
 Turn an approved requirement into a reviewable technical design artifact. The design must explain the intended implementation before code changes begin.
+
+## Workspace and Git Setup
+
+Before starting stage work:
+
+1. Check whether the workspace is a git repository (`git rev-parse --is-inside-work-tree`). If not, run `git init` first.
+2. Check whether a GitHub remote is configured (`git remote -v`). Note whether `github.com` appears in any remote URL.
+3. Use a git worktree tied to the requirement ID:
+   - Branch: `feature/proud-flow/<requirementId>`
+   - Worktree path: `.worktrees/<requirementId>` (or `../<repo>.proud-flow/<requirementId>` when the main repo layout requires it)
+4. Reuse the same worktree across all stages for this requirement (`tech_design`, `case_rundown`, `development`). If the worktree already exists, switch into it instead of creating a new one.
+5. Make a stage-scoped commit in that worktree when this stage produces repository changes. Commit messages must include `<requirementId>` and `tech_design`.
+
+When attaching or uploading artifacts:
+
+- Always include the worktree path and branch name in the artifact title or description.
+- If a GitHub remote exists, push the branch, open a PR when appropriate, and attach the PR URL with `attach-artifact --url <pr-url>`.
 
 ## Workflow
 

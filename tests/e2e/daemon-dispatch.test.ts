@@ -3,7 +3,7 @@ import { createApiApp, hashToken } from "../../apps/api/src/test-utils";
 import {
   createDaemon,
   createMemoryCliRuntime,
-  createMockCodexRunner,
+  createMockAgentRunner,
   runCli,
 } from "../../apps/cli/src/index";
 
@@ -57,7 +57,7 @@ describe("daemon dispatch source e2e", () => {
     );
     expect(ws.status).toBe(426);
 
-    const runner = createMockCodexRunner();
+    const runner = createMockAgentRunner();
     const sent: unknown[] = [];
     const daemon = createDaemon({
       runner,
@@ -73,7 +73,9 @@ describe("daemon dispatch source e2e", () => {
       stage: "tech_design",
     });
 
-    expect(runner.calls).toEqual([{ command: "/tech-design REQ-000123" }]);
+    expect(runner.calls).toEqual([
+      { stage: "tech_design", requirementId: "REQ-000123" },
+    ]);
     expect(sent).toEqual([
       {
         type: "dispatch.acked",

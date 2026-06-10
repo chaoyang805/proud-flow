@@ -72,8 +72,9 @@ local-cli
   dispatcher
     websocket              后端连接与重连
     protocol               消息 schema
-    stage-router           stage 到 Skill 指令映射
-    codex-runner           Codex 调用适配
+    agent-runner           Agent 执行器抽象
+    stage-router           stage 到 Skill prompt 映射
+    codex-runner           Codex AgentRunner 实现
   skills
     bundled-manifest       读取包内 manifest
     installer              复制到 workspacePath/.codex/skills
@@ -291,42 +292,45 @@ daemon ACK：
 
 第一版建议固定映射：
 
-| stage | Codex 指令 |
-| --- | --- |
-| `tech_design` | `/tech-design {{requirementId}}` |
-| `case_rundown` | `/case-rundown {{requirementId}}` |
-| `development` | `/develop {{requirementId}}` |
+| stage | skill 名称 | Codex prompt |
+| --- | --- | --- |
+| `tech_design` | `tech-design` | `Use the $tech-design skill to handle Proud Flow requirement {{requirementId}}.` |
+| `case_rundown` | `case-rundown` | `Use the $case-rundown skill to handle Proud Flow requirement {{requirementId}}.` |
+| `development` | `development` | `Use the $development skill to handle Proud Flow requirement {{requirementId}}.` |
 
 映射规则：
 
 - 只允许白名单 stage。
 - 未知 stage 返回失败 ACK。
-- 指令中只包含 slash command 和需求编号。
+- prompt 通过 `$<skill-name>` 显式触发已安装的 Skill。
 - 复杂上下文由对应 Skill 通过 `proud-flow` CLI helper 读取。
-- stage command 可以内置默认值；MVP 不提供远端动态命令下发。
+- stage prompt 可以内置默认值；MVP 不提供远端动态命令下发。
 
-## 10. Codex Runner 设计
+## 10. Agent Runner 设计
 
-Codex Runner 是 daemon 内唯一与本地 Codex 交互的适配层。
+daemon 通过 `AgentRunner` 抽象与本地 AI Agent 交互。第一版仅实现 `codex`，后续可扩展 `claude`、`cursor` 等 runner。
 
-职责：
+`createCodexCliRunner` 是 Codex 的 `AgentRunner` 实现，职责：
 
-- 检查 Codex 是否可用。
-- 在指定 workspace 中启动 Codex 指令。
-- 捕获启动失败。
-- 返回同步派发结果。
+- 在 `workspacePath` 中 detached 启动 `codex exec`。
+- 捕获 spawn 失败（如 Codex CLI 不存在）。
+- spawn 成功后立即返回，不等待任务完成。
+
+调用方式：
+
+```text
+codex exec --sandbox danger-full-access "<prompt>"
+```
+
+- 工作区通过 spawn `cwd: workspacePath` 设定，不使用 `-C`。
+- stdin 重定向为 `ignore`，避免 daemon 子进程中 `codex exec` 挂起。
+- 选用 `danger-full-access` 以支持 Skill 流程中的 `git push`、开 PR 等联网操作。
 
 第一版 ACK 语义：
 
-- 成功：Codex 进程或会话已启动并接收指令。
-- 失败：Codex CLI 不存在、workspace 不存在、权限错误、命令启动失败。
+- 成功：Codex 进程已启动并接收 prompt。
+- 失败：Codex CLI 不存在、workspace 不存在、spawn 失败。
 - 不等待 Codex 完成整个需求。
-
-可选实现方式：
-
-- 调用本地 Codex CLI。
-- 调用 Codex 桌面暴露的本地控制接口。
-- 后续封装成多 runner 适配器。
 
 ## 11. Skill 安装和更新
 
