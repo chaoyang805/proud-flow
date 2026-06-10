@@ -23,7 +23,6 @@ import {
 } from "./requirements";
 import { realtimeEventListResponseSchema } from "./realtime";
 import {
-  approveReviewRequestSchema,
   reviewActionResponseSchema,
   rollbackReviewRequestSchema,
 } from "./reviews";
@@ -76,13 +75,6 @@ export const routeSpecs: RouteSpec[] = [
     summary: "Update requirement",
     request: updateRequirementRequestSchema,
     response: requirementResponseSchema,
-  },
-  {
-    method: "post",
-    path: "/api/requirements/{id}/reviews/approve",
-    summary: "Approve review",
-    request: approveReviewRequestSchema,
-    response: reviewActionResponseSchema,
   },
   {
     method: "post",

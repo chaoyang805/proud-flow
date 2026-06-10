@@ -104,8 +104,12 @@ describe("api client package", () => {
     );
     assert.deepEqual((await client.artifacts.list("REQ-000123")).items, []);
     assert.equal(
-      (await client.reviews.approve("REQ-000123", { note: "通过" })).requirement
-        .id,
+      (
+        await client.reviews.rollback("REQ-000123", {
+          targetStatus: "planning",
+          reason: "补充需求",
+        })
+      ).requirement.id,
       "REQ-000123",
     );
   });

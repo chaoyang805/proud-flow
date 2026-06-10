@@ -13,10 +13,6 @@ import {
   type RequirementResponse,
 } from "./requirements";
 
-export interface ApproveReviewRequest {
-  note: string;
-}
-
 export interface RollbackReviewRequest {
   targetStatus: RequirementStatus;
   reason: string;
@@ -25,11 +21,6 @@ export interface RollbackReviewRequest {
 export interface ReviewActionResponse {
   requirement: RequirementResponse;
 }
-
-export const approveReviewRequestSchema: Schema<ApproveReviewRequest> =
-  objectSchema({
-    note: stringSchema({ minLength: 1 }),
-  });
 
 export const rollbackReviewRequestSchema: Schema<RollbackReviewRequest> =
   objectSchema({
