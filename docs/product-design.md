@@ -42,7 +42,7 @@ flowchart LR
 - 创建需求，支持输入简短或复杂的需求描述。
 - 展示需求列表，支持按状态、优先级、更新时间筛选。
 - 展示需求详情，包括当前状态、需求描述、AI 产物、PR 链接、测试报告、截图、历史流转记录。
-- 在人工节点提供操作入口，例如派发给 AI、review 通过、退回修改、验收通过、归档。
+- 在人工节点提供操作入口，例如派发给 AI、退回修改、验收归档。
 - 展示通知，例如技术方案待 review、用例待 review、开发交付待验收。
 - 后续移动端复用同一套后端 API，优先支持查看、review、通知和审批。
 
@@ -68,7 +68,7 @@ flowchart LR
 
 - 管理需求的创建、查询、编辑、归档。
 - 管理状态机，统一校验所有状态流转。
-- 管理人工 review，包括通过、退回、验收、归档。
+- 管理人工 review，包括退回、验收、归档；review 通过后通过派发推进下一阶段。
 - 管理 AI 任务，包括创建任务、锁定任务、任务完成、任务失败、重试。
 - 管理 AI 产物，包括 PR 链接、技术方案、用例文档、测试报告、截图、执行日志。
 - 提供前端 API。
@@ -184,15 +184,17 @@ sequenceDiagram
   B->>F: 展示待 review
 ```
 
-### 4.2 Review 通过后进入下一阶段
+### 4.2 Review 后派发进入下一阶段
+
+用户在 `tech-review` / `case-review` 点击派发后，后端不改状态，通过 WebSocket 下发任务给本地 daemon；Codex Skill 调用 `start-stage` 后进入 `case-rundown` / `developing`。
 
 ```mermaid
 flowchart TD
   Planning["planning"] --> TechDesign["tech-design"]
   TechDesign --> TechReview["tech-review"]
-  TechReview --> CaseRundown["case-rundown"]
+  TechReview -->|派发 case_rundown + Skill start-stage| CaseRundown["case-rundown"]
   CaseRundown --> CaseReview["case-review"]
-  CaseReview --> Developing["developing"]
+  CaseReview -->|派发 development + Skill start-stage| Developing["developing"]
   Developing --> Delivery["delivery"]
   Delivery --> Archived["archived"]
 

@@ -182,7 +182,6 @@ archived       需求已归档
 - `start_ai_stage`
 - `complete_ai_stage`
 - `fail_ai_stage`
-- `approve_review`
 - `rollback_requirement`
 - `archive_requirement`
 - `reopen_requirement`，可作为后续能力
@@ -193,9 +192,9 @@ archived       需求已归档
 flowchart LR
   Planning["planning"] -->|Skill 请求开始技术设计| TechDesign["tech-design"]
   TechDesign -->|提交技术方案 PR| TechReview["tech-review"]
-  TechReview -->|用户通过并派发用例设计| CaseRundown["case-rundown"]
+  TechReview -->|用户派发用例设计，Skill start-stage| CaseRundown["case-rundown"]
   CaseRundown -->|提交用例 PR / 文档| CaseReview["case-review"]
-  CaseReview -->|用户通过并派发开发| Developing["developing"]
+  CaseReview -->|用户派发开发，Skill start-stage| Developing["developing"]
   Developing -->|提交代码 PR + 测试报告| Delivery["delivery"]
   Delivery -->|用户验收通过| Archived["archived"]
 ```
@@ -266,7 +265,6 @@ POST   /api/requirements/:id/archive
 Review：
 
 ```text
-POST   /api/requirements/:id/reviews/approve
 POST   /api/requirements/:id/reviews/rollback
 ```
 
@@ -275,6 +273,16 @@ POST   /api/requirements/:id/reviews/rollback
 ```text
 POST   /api/requirements/:id/dispatch
 ```
+
+派发来源状态（`dispatchStageSourceStatus`）：
+
+| stage | 允许派发的当前状态 | Skill `start-stage` 后进入 |
+| --- | --- | --- |
+| `tech_design` | `planning` | `tech-design` |
+| `case_rundown` | `tech-review` | `case-rundown` |
+| `development` | `case-review` | `developing` |
+
+派发接口只下发任务给 daemon，不直接修改需求状态；状态变更由 Skill 调用 `status/start` 触发。
 
 产物：
 
@@ -614,7 +622,7 @@ AI 失败事件：
 - daemon ACK 后派发接口返回成功。
 - Skill 请求进入 AI 工作状态。
 - AI 提交产物进入 review。
-- 用户 review 通过后派发下一阶段。
+- 用户在 review 状态派发下一阶段，Skill `start-stage` 后进入 AI 工作状态。
 - 用户从 `delivery` 回退到 `planning`。
 - 旧 Skill 流程在回退后提交完成应被拒绝。
 - Skill 更新状态后 WebSocket 推送 `requirement.updated`。

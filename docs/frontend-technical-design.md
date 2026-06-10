@@ -87,9 +87,9 @@ frontend
 | --- | --- | --- |
 | `planning` | 需求规划中 | 编辑需求、派发技术方案设计 |
 | `tech-design` | AI 正在设计技术方案 | 查看已有产物、等待更新 |
-| `tech-review` | 技术方案待 review | 查看技术方案 PR、通过并派发用例设计、回退 |
+| `tech-review` | 技术方案待 review | 查看技术方案 PR、派发用例设计、回退 |
 | `case-rundown` | AI 正在设计测试用例 | 查看已有产物、等待更新 |
-| `case-review` | 测试用例待 review | 查看用例产物、通过并派发开发、回退 |
+| `case-review` | 测试用例待 review | 查看用例产物、派发开发、回退 |
 | `developing` | AI 正在开发 | 查看开发产物、等待交付 |
 | `delivery` | 开发交付待验收 | 查看代码 PR、测试报告、截图、验收归档、回退 |
 | `archived` | 已归档 | 只读查看 |
@@ -119,7 +119,6 @@ POST   /api/requirements/:id/archive
 Review：
 
 ```text
-POST   /api/requirements/:id/reviews/approve
 POST   /api/requirements/:id/reviews/rollback
 ```
 
@@ -305,7 +304,7 @@ RealtimeToastBridge
 组件测试：
 
 - 需求列表筛选和空状态。
-- review 通过弹窗。
+- review 阶段派发按钮。
 - 回退弹窗必填校验。
 - 派发按钮 loading 和错误态。
 
@@ -314,7 +313,7 @@ RealtimeToastBridge
 - 创建需求并进入详情页。
 - 从 `planning` 派发技术方案设计并展示 ACK。
 - 技术方案进入 review 后展示 PR 产物。
-- review 通过后派发下一阶段。
+- review 状态派发下一阶段，Skill `start-stage` 后进入 AI 工作状态。
 - 从 `delivery` 回退到 `planning`。
 - WebSocket 事件触发列表和详情刷新。
 
