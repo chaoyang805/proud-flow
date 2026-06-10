@@ -190,12 +190,25 @@ describe("完整生命周期 E2E", () => {
         console.log("[e2e] PR URL:", prArtifact.url);
       }
 
-      const approveResp = await fetch(`${apiUrl}/api/reviews/${rid}/approve`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ note: "技术方案评审通过" }),
-      });
-      expect(approveResp.ok).toBe(true);
+      const dispatchCaseResp = await fetch(
+        `${apiUrl}/api/requirements/${rid}/dispatch`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ stage: "case_rundown" }),
+        },
+      );
+      expect(dispatchCaseResp.ok).toBe(true);
+
+      const startCaseResp = await fetch(
+        `${apiUrl}/api/skills/requirements/${rid}/status/start`,
+        {
+          method: "POST",
+          headers: H,
+          body: JSON.stringify({ stage: "case_rundown" }),
+        },
+      );
+      expect(startCaseResp.ok).toBe(true);
 
       const r7 = await fetch(`${apiUrl}/api/requirements/${rid}`);
       const fin = (await r7.json()) as { status: string };
