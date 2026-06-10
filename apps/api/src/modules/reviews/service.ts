@@ -5,23 +5,10 @@ import {
 import type { Requirement } from "@proud-flow/domain";
 import { ApiError } from "../../middleware/error";
 import type { IRequirementRepository } from "../requirements/repository";
-import {
-  approveReview,
-  rollbackRequirement,
-} from "../workflow/state-machine";
+import { rollbackRequirement } from "../workflow/state-machine";
 
 export class ReviewsService {
   constructor(private readonly repository: IRequirementRepository) {}
-
-  async approve(requirementId: string): Promise<Requirement> {
-    const requirement = await this.getRequirement(requirementId);
-    const status = approveReview(requirement);
-    const updated = await this.repository.updateRequirement(requirementId, {
-      status,
-    });
-    if (!updated) throw new ApiError(404, "NOT_FOUND", "Requirement not found");
-    return updated;
-  }
 
   async rollback(requirementId: string, input: unknown): Promise<Requirement> {
     const request: RollbackReviewRequest =

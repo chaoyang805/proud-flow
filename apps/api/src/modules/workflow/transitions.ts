@@ -1,5 +1,4 @@
 export {
-  approveReview,
   archiveRequirement,
   completeAiStage,
   rollbackRequirement,

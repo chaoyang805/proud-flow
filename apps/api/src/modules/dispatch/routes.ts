@@ -5,6 +5,7 @@ import {
 } from "@proud-flow/api-contract";
 import {
   getActiveStatusForDispatchStage,
+  getSourceStatusForDispatchStage,
   type DispatchStage,
   type RequirementStatus,
 } from "@proud-flow/domain";
@@ -174,15 +175,9 @@ async function handleDispatchWebSocketMemory(
 }
 
 function ensureDispatchAllowed(status: RequirementStatus, stage: DispatchStage): void {
-  const allowedSource = getDispatchSourceStatus(stage);
+  const allowedSource = getSourceStatusForDispatchStage(stage);
   if (status !== allowedSource) {
     throw new ApiError(409, "INVALID_STATUS_TRANSITION", `Cannot dispatch ${stage} from ${status}`);
   }
   getActiveStatusForDispatchStage(stage);
-}
-
-function getDispatchSourceStatus(stage: DispatchStage): RequirementStatus {
-  if (stage === "tech_design") return "planning";
-  if (stage === "case_rundown") return "case-rundown";
-  return "developing";
 }

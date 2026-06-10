@@ -61,7 +61,7 @@ describe("workflow and review API", () => {
     assert.equal(editAfterAi.error.code, "INVALID_STATUS_TRANSITION");
   });
 
-  it("approves reviews, rolls back with version increment, and archives with acceptance artifact", async () => {
+  it("starts next stages from review states, rolls back with version increment, and archives with acceptance artifact", async () => {
     const app = createApiApp();
     await createRequirement(app);
     await request(app, "/api/requirements/REQ-000001/workflow/start-stage", {
@@ -81,13 +81,13 @@ describe("workflow and review API", () => {
       body: { stage: "tech_design" },
     });
 
-    const approved = await json(
-      await request(app, "/api/requirements/REQ-000001/reviews/approve", {
+    const startedCaseRundown = await json(
+      await request(app, "/api/requirements/REQ-000001/workflow/start-stage", {
         method: "POST",
-        body: { note: "通过" },
+        body: { stage: "case_rundown" },
       }),
     );
-    assert.equal(approved.requirement.status, "case-rundown");
+    assert.equal(startedCaseRundown.requirement.status, "case-rundown");
 
     const invalidComplete = await json(
       await request(app, "/api/requirements/REQ-000001/workflow/complete-stage", {
@@ -137,9 +137,9 @@ describe("workflow and review API", () => {
       "/api/requirements/REQ-000001/workflow/complete-stage",
       { method: "POST", body: { stage: "tech_design" } },
     );
-    await request(app2, "/api/requirements/REQ-000001/reviews/approve", {
+    await request(app2, "/api/requirements/REQ-000001/workflow/start-stage", {
       method: "POST",
-      body: { note: "ok" },
+      body: { stage: "case_rundown" },
     });
     await request(app2, "/api/requirements/REQ-000001/artifacts", {
       method: "POST",
@@ -150,9 +150,9 @@ describe("workflow and review API", () => {
       "/api/requirements/REQ-000001/workflow/complete-stage",
       { method: "POST", body: { stage: "case_rundown" } },
     );
-    await request(app2, "/api/requirements/REQ-000001/reviews/approve", {
+    await request(app2, "/api/requirements/REQ-000001/workflow/start-stage", {
       method: "POST",
-      body: { note: "ok" },
+      body: { stage: "development" },
     });
     await request(app2, "/api/requirements/REQ-000001/artifacts", {
       method: "POST",

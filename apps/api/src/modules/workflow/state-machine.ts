@@ -3,6 +3,7 @@ import {
   getActiveStatusForDispatchStage,
   getRequiredArtifactsForDispatchStage,
   getReviewStatusForDispatchStage,
+  getSourceStatusForDispatchStage,
   isStatusBefore,
   type Artifact,
   type DispatchStage,
@@ -16,7 +17,7 @@ export function startAiStage(
   stage: DispatchStage,
 ): RequirementStatus {
   const target = getActiveStatusForDispatchStage(stage);
-  const allowedSource = getDispatchSourceStatus(stage);
+  const allowedSource = getSourceStatusForDispatchStage(stage);
   if (requirement.status !== allowedSource) {
     throw new ApiError(
       409,
@@ -42,16 +43,6 @@ export function completeAiStage(
   }
   ensureRequiredArtifacts(stage, requirement.version, artifacts);
   return getReviewStatusForDispatchStage(stage);
-}
-
-export function approveReview(requirement: Requirement): RequirementStatus {
-  if (requirement.status === "tech-review") return "case-rundown";
-  if (requirement.status === "case-review") return "developing";
-  throw new ApiError(
-    409,
-    "INVALID_STATUS_TRANSITION",
-    `Cannot approve review from ${requirement.status}`,
-  );
 }
 
 export function rollbackRequirement(
@@ -128,8 +119,3 @@ export function ensureRequiredArtifacts(
   }
 }
 
-function getDispatchSourceStatus(stage: DispatchStage): RequirementStatus {
-  if (stage === "tech_design") return "planning";
-  if (stage === "case_rundown") return "case-rundown";
-  return "developing";
-}
