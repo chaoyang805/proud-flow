@@ -13,6 +13,12 @@ export const workflowStatuses: RequirementStatus[] = [
   "archived",
 ];
 
+export const dispatchStageSourceStatus = {
+  tech_design: "planning",
+  case_rundown: "tech-review",
+  development: "case-review",
+} as const satisfies Record<DispatchStage, RequirementStatus>;
+
 export const dispatchStageToReviewStatus = {
   tech_design: "tech-review",
   case_rundown: "case-review",
@@ -24,6 +30,12 @@ export const dispatchStageRequiredArtifacts = {
   case_rundown: ["case_rundown_pr", "case_rundown_doc"],
   development: ["development_pr", "test_report"],
 } as const satisfies Record<DispatchStage, readonly ArtifactType[]>;
+
+export function getSourceStatusForDispatchStage(
+  stage: DispatchStage,
+): RequirementStatus {
+  return dispatchStageSourceStatus[stage];
+}
 
 export function getActiveStatusForDispatchStage(
   stage: DispatchStage,

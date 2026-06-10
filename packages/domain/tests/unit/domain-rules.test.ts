@@ -20,11 +20,13 @@ import {
   isActorType,
   isTokenType,
   workflowStatuses,
+  dispatchStageSourceStatus,
   dispatchStageToActiveStatus,
   dispatchStageToReviewStatus,
   dispatchStageRequiredArtifacts,
   getActiveStatusForDispatchStage,
   getReviewStatusForDispatchStage,
+  getSourceStatusForDispatchStage,
   getRequiredArtifactsForDispatchStage,
   canRollbackFromStatus,
   isStatusBefore,
@@ -198,6 +200,12 @@ describe("workflow module", () => {
     assert.deepEqual(workflowStatuses, requirementStatuses);
   });
 
+  it("getSourceStatusForDispatchStage maps correctly", () => {
+    assert.equal(getSourceStatusForDispatchStage("tech_design"), "planning");
+    assert.equal(getSourceStatusForDispatchStage("case_rundown"), "tech-review");
+    assert.equal(getSourceStatusForDispatchStage("development"), "case-review");
+  });
+
   it("getActiveStatusForDispatchStage maps correctly", () => {
     assert.equal(getActiveStatusForDispatchStage("tech_design"), "tech-design");
     assert.equal(getActiveStatusForDispatchStage("case_rundown"), "case-rundown");
@@ -231,6 +239,12 @@ describe("workflow module", () => {
     assert.equal(isStatusBefore("delivery", "planning"), false);
     assert.equal(isStatusBefore("archived", "planning"), false);
     assert.equal(isStatusBefore("planning", "planning"), false);
+  });
+
+  it("dispatchStageSourceStatus covers all stages", () => {
+    assert.ok("tech_design" in dispatchStageSourceStatus);
+    assert.ok("case_rundown" in dispatchStageSourceStatus);
+    assert.ok("development" in dispatchStageSourceStatus);
   });
 
   it("dispatchStageToReviewStatus covers all stages", () => {
