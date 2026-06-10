@@ -49,10 +49,3 @@ export function stageForStatus(
   return undefined;
 }
 
-export function reviewApproveLabel(status: RequirementStatus): string | undefined {
-  if (status === "tech-review") return "通过技术方案";
-  if (status === "case-review") return "通过用例";
-  if (status === "delivery") return "验收通过";
-  return undefined;
-}
-

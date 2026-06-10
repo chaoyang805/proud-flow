@@ -18,7 +18,7 @@ import {
   setStoredUserToken,
 } from "../../src/lib/auth/token-store";
 import { parseRealtimeEvent } from "../../src/lib/realtime/events";
-import { reviewApproveLabel, stageForStatus } from "../../src/lib/requirements/labels";
+import { stageForStatus } from "../../src/lib/requirements/labels";
 
 const requirement = {
   id: "REQ-000123",
@@ -61,8 +61,6 @@ describe("P7 web workspace", () => {
     assert.equal(stageForStatus("tech-review"), "case_rundown");
     assert.equal(stageForStatus("case-review"), "development");
     assert.equal(stageForStatus("archived"), undefined);
-    assert.equal(reviewApproveLabel("case-review"), "通过用例");
-    assert.equal(reviewApproveLabel("delivery"), "验收通过");
   });
 
   it("renders and filters requirements from the API", async () => {
@@ -163,9 +161,15 @@ describe("P7 web workspace", () => {
     assert.equal(screen.getByText("历史测试报告").textContent, "历史测试报告");
   });
 
-  it("submits approve, rollback, and archive actions through backend APIs", async () => {
+  it("submits dispatch, rollback, and archive actions through backend APIs", async () => {
     const calls = mockFetch((url) => {
-      if (url.endsWith("/reviews/approve")) return { requirement };
+      if (url.endsWith("/dispatch")) {
+        return {
+          requestId: "dispatch_req_test",
+          stage: "case_rundown",
+          accepted: true,
+        };
+      }
       if (url.endsWith("/reviews/rollback")) return { requirement };
       if (url.endsWith("/archive")) return { archived: true };
       if (url.endsWith("/artifacts")) return { items: [] };
@@ -177,8 +181,8 @@ describe("P7 web workspace", () => {
         requirement={{ ...requirement, status: "tech-review" }}
       />,
     );
-    fireEvent.click(screen.getByRole("button", { name: /通过技术方案/ }));
-    await screen.findByText("已提交 review 操作");
+    fireEvent.click(screen.getByRole("button", { name: /派发用例设计/ }));
+    await screen.findByText("派发请求已提交，等待 daemon ACK");
 
     fireEvent.change(screen.getByPlaceholderText("回退原因"), {
       target: { value: "需要补充范围" },
@@ -196,7 +200,7 @@ describe("P7 web workspace", () => {
     fireEvent.click(screen.getByRole("button", { name: "归档" }));
     await screen.findByText("已提交归档");
 
-    assert.equal(calls.some((call) => call.url.endsWith("/reviews/approve")), true);
+    assert.equal(calls.some((call) => call.url.endsWith("/dispatch")), true);
     assert.equal(calls.some((call) => call.url.endsWith("/reviews/rollback")), true);
     assert.equal(calls.some((call) => call.url.endsWith("/archive")), true);
   });

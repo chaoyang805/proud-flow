@@ -3,13 +3,12 @@
 import type { RequirementResponse } from "@proud-flow/api-contract";
 import type { DispatchStage, RequirementStatus } from "@proud-flow/domain";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Archive, Check, RotateCcw, Send } from "lucide-react";
+import { Archive, RotateCcw, Send } from "lucide-react";
 import { useState } from "react";
 import { createWebApiClient } from "../../lib/api/client";
 import { queryKeys } from "../../lib/query/keys";
 import {
   dispatchStageLabels,
-  reviewApproveLabel,
   stageForStatus,
 } from "../../lib/requirements/labels";
 
@@ -22,7 +21,6 @@ export function RequirementActionPanel({
   const [rollbackTarget, setRollbackTarget] =
     useState<RequirementStatus>("planning");
   const stage = stageForStatus(requirement.status);
-  const approveLabel = reviewApproveLabel(requirement.status);
   const client = createWebApiClient();
 
   const invalidate = async () => {
@@ -42,18 +40,6 @@ export function RequirementActionPanel({
       client.dispatch.dispatch(requirement.id, { stage: dispatchStage }),
     onSuccess: async () => {
       setMessage("派发请求已提交，等待 daemon ACK");
-      await invalidate();
-    },
-    onError: (error) => setMessage(formatActionError(error)),
-  });
-
-  const approve = useMutation({
-    mutationFn: () =>
-      client.reviews.approve(requirement.id, {
-        note: "Approved from Proud Flow web",
-      }),
-    onSuccess: async () => {
-      setMessage("已提交 review 操作");
       await invalidate();
     },
     onError: (error) => setMessage(formatActionError(error)),
@@ -100,17 +86,6 @@ export function RequirementActionPanel({
           >
             <Send size={15} aria-hidden />
             派发{dispatchStageLabels[stage]}
-          </button>
-        ) : null}
-        {approveLabel ? (
-          <button
-            type="button"
-            className="focus-ring inline-flex h-9 items-center gap-2 rounded-md bg-emerald-700 px-3 text-sm font-medium text-white hover:bg-emerald-800 disabled:opacity-50"
-            disabled={approve.isPending}
-            onClick={() => approve.mutate()}
-          >
-            <Check size={15} aria-hidden />
-            {approveLabel}
           </button>
         ) : null}
         {requirement.status === "delivery" ? (
@@ -175,4 +150,3 @@ function formatActionError(error: unknown): string {
   if (message.includes("INVALID_STATUS_TRANSITION")) return "状态不允许执行该操作";
   return message;
 }
-

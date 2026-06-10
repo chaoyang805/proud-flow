@@ -37,7 +37,7 @@ export function RealtimeToastBridge() {
       socket.onmessage = (message) => {
         if (typeof message.data !== "string") return;
         const event = parseRealtimeEvent(message.data);
-        if (seen.current.has(event.eventId)) return;
+        if (!event || seen.current.has(event.eventId)) return;
         seen.current.add(event.eventId);
         handleRealtimeEvent(event, queryClient, setToasts);
       };
