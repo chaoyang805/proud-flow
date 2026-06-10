@@ -4,7 +4,7 @@ import {
   type CreateArtifactRequest,
   type UploadArtifactRequest,
 } from "@proud-flow/api-contract";
-import type { Artifact } from "@proud-flow/domain";
+import type { Artifact, Requirement } from "@proud-flow/domain";
 import { ApiError } from "../../middleware/error";
 import type { IRequirementRepository } from "../requirements/repository";
 import type { ArtifactStorage } from "./storage";
@@ -54,12 +54,13 @@ export class ArtifactsService {
     });
   }
 
-  async archive(requirementId: string): Promise<Artifact[]> {
+  async archive(requirementId: string): Promise<Requirement> {
     const requirement = await this.requireRequirement(requirementId);
     const artifacts = await this.repository.listArtifacts(requirementId);
     const status = archiveRequirement(requirement, artifacts);
-    await this.repository.updateRequirement(requirementId, { status });
-    return artifacts;
+    const updated = await this.repository.updateRequirement(requirementId, { status });
+    if (!updated) throw new ApiError(404, "NOT_FOUND", "Requirement not found");
+    return updated;
   }
 
   private async requireRequirement(requirementId: string) {

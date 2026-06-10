@@ -7,11 +7,14 @@ import type { ApiEnv } from "../../env";
 import { requireUserToken } from "../../middleware/auth";
 import { ApiError, jsonResponse } from "../../middleware/error";
 import type { IRequirementRepository } from "../requirements/repository";
+import { broadcastRequirementUpdated } from "../realtime/requirement-updated";
+import type { RealtimeHub } from "../realtime/hub";
 import { completeAiStage, startAiStage } from "./state-machine";
 
 export function installWorkflowModule(
   router: RouterType,
   repository: IRequirementRepository,
+  hub: RealtimeHub,
 ) {
   router
     .post("/api/requirements/:id/workflow/start-stage", async (request: IRequestStrict, env: ApiEnv) => {
@@ -20,6 +23,7 @@ export function installWorkflowModule(
       const requirement = await requireRequirement(repository, request.params.id);
       const status = startAiStage(requirement, body.stage);
       const updated = await repository.updateRequirement(requirement.id, { status });
+      if (updated) void broadcastRequirementUpdated(env, hub, updated);
       return jsonResponse({ requirement: updated });
     })
     .post("/api/requirements/:id/workflow/complete-stage", async (request: IRequestStrict, env: ApiEnv) => {
@@ -32,6 +36,7 @@ export function installWorkflowModule(
         await repository.listArtifacts(requirement.id),
       );
       const updated = await repository.updateRequirement(requirement.id, { status });
+      if (updated) void broadcastRequirementUpdated(env, hub, updated);
       return jsonResponse({ requirement: updated });
     });
 }

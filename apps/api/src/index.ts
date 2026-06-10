@@ -98,11 +98,11 @@ export function createApiApp(options: ApiAppOptions = {}) {
     installLocalModule(router, local, repository);
     installDispatchModule(router, repository, hub);
     installRealtimeModule(router, hub);
-    installSkillsModule(router, skills, repository);
+    installSkillsModule(router, skills, repository, hub);
     installRequirementsModule(router, requirements);
-    installReviewsModule(router, reviews);
-    installArtifactsModule(router, artifacts);
-    installWorkflowModule(router, repository);
+    installReviewsModule(router, reviews, hub);
+    installArtifactsModule(router, artifacts, hub);
+    installWorkflowModule(router, repository, hub);
 
     // 404
     router.all("*", () => errorResponse(new ApiError(404, "NOT_FOUND", "Route not found")));
